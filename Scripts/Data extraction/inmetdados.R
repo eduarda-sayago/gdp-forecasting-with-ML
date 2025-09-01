@@ -1,4 +1,4 @@
-## Processamento dados inmet
+## Processamento dados mensais inmet
 
 # Libraries
 library(dplyr)
@@ -121,10 +121,10 @@ dados_consolidados <- dados_consolidados %>%
          -torres_...13, -uruguaiana_...13)
 
 colnames(dados_consolidados)
-
-dados_consolidados <- dados_consolidados %>%
-  select('Data Medicao', 'bage_dirvento', 'bage_insolacaototal', 'bage_nebulosmedia', 'bage_precipitacao', 'bage_pressaomed', 'bage_tempmax', 'bage_tempmedcomp', 'bage_tempmin', 'bage_umidade', 'bage_ventovelmax', 'bage_ventovelmed', 'cruzalta_dirvento', 'cruzalta_insolacaototal', 'cruzalta_nebulosmedia', 'cruzalta_precipitacao', 'cruzalta_pressaomed', 'cruzalta_tempmax', 'cruzalta_tempmedcomp', 'cruzalta_tempmin', 'cruzalta_umidade', 'cruzalta_ventovelmax', 'cruzalta_ventovelmed', 'passofundo_dirvento', 'passofundo_insolacaototal', 'passofundo_nebulosmedia', 'passofundo_precipitacao', 'passofundo_pressaomed', 'passofundo_tempmax', 'passofundo_tempmedcomp', 'passofundo_tempmin', 'passofundo_umidade', 'passofundo_ventovelmax', 'passofundo_ventovelmed', 'santamaria_dirvento', 'santamaria_insolacaototal', 'santamaria_nebulosmedia', 'santamaria_precipitacao', 'santamaria_pressaomed', 'santamaria_tempmax', 'santamaria_tempmedcomp', 'santamaria_tempmin', 'santamaria_umidade', 'santamaria_ventovelmax', 'santamaria_ventovelmed'
-)
+# 
+# dados_consolidados <- dados_consolidados %>%
+#   select('Data Medicao', 'bage_dirvento', 'bage_insolacaototal', 'bage_nebulosmedia', 'bage_precipitacao', 'bage_pressaomed', 'bage_tempmax', 'bage_tempmedcomp', 'bage_tempmin', 'bage_umidade', 'bage_ventovelmax', 'bage_ventovelmed', 'cruzalta_dirvento', 'cruzalta_insolacaototal', 'cruzalta_nebulosmedia', 'cruzalta_precipitacao', 'cruzalta_pressaomed', 'cruzalta_tempmax', 'cruzalta_tempmedcomp', 'cruzalta_tempmin', 'cruzalta_umidade', 'cruzalta_ventovelmax', 'cruzalta_ventovelmed', 'passofundo_dirvento', 'passofundo_insolacaototal', 'passofundo_nebulosmedia', 'passofundo_precipitacao', 'passofundo_pressaomed', 'passofundo_tempmax', 'passofundo_tempmedcomp', 'passofundo_tempmin', 'passofundo_umidade', 'passofundo_ventovelmax', 'passofundo_ventovelmed', 'santamaria_dirvento', 'santamaria_insolacaototal', 'santamaria_nebulosmedia', 'santamaria_precipitacao', 'santamaria_pressaomed', 'santamaria_tempmax', 'santamaria_tempmedcomp', 'santamaria_tempmin', 'santamaria_umidade', 'santamaria_ventovelmax', 'santamaria_ventovelmed'
+# )
 
 write.csv(dados_consolidados, "dadosinmett.csv")
 

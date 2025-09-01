@@ -1,7 +1,8 @@
 library(lubridate)
 
-aggregate_to_quarterly <- function(results, info) {
+aggregate_to_quarterly_old <- function(results, info) {
   
+  ####### Organize quarters
   quarterly <- list()
   
   # Extract original dates
@@ -22,6 +23,7 @@ aggregate_to_quarterly <- function(results, info) {
   quarterly[["date"]] <- sapply(split(dates, quarter_index), max)[full_quarters]
   quarterly[["date"]] <- as.Date(quarterly[["date"]], origin = "1970-01-01")  # preserve Date class
   
+  ####### Logistic for transforming to quarterly
   # Loop through series
   for (i in seq_len(nrow(info))) {
     serie_name <- info$Serie[i]
@@ -30,31 +32,26 @@ aggregate_to_quarterly <- function(results, info) {
     if (type_sw == 4) next  # skip date
     
     serie <- results[[serie_name]]
-    
-    # remove NA at the beginning
     serie <- serie[!is.na(serie)]
+    q_list <- split(serie, quarter_index) # Aggregate by quarter
+    q_list <- q_list[full_quarters] # Keep only full quarters
     
-    # Aggregate by quarter
-    q_list <- split(serie, quarter_index)
-    
-    # Keep only full quarters
-    q_list <- q_list[full_quarters]
-    
-    if (type_sw == 1) {
-      # Simple difference -> sum
+    if (type_sw == 1) { # Simple difference -> sum
+
       q_serie <- sapply(q_list, sum)
       
-    } else if (type_sw %in% c(2,3)) {
-      # Log differences -> cumulative factor
+    } else if (type_sw %in% c(2,3)) { # Log differences -> cumulative factor
+      
       q_serie <- sapply(q_list, function(x) prod(exp(x)) - 1)
       
     } else {
-      warning(paste("Tipo desconhecido para", serie_name, "- pulando."))
+      warning(paste("Unknown type_sw for", serie_name))
       next
     }
     
     quarterly[[serie_name]] <- as.numeric(q_serie)
   }
   
+  ## Output
   return(quarterly)
 }
