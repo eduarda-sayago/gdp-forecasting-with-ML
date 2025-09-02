@@ -3,6 +3,9 @@ library(textdata)
 library(lubridate)
 library(sentometrics)
 
+# Note: this script contains two functions: 
+# get_stationary_SW for the transformations and get_stationarity for confirmation with ADF test
+
 get_stationary_SW <- function(dataset, metadata, shift = 1, max_lag = 1){
   
   #' Transformation of Time Series for Stationarity Based on Stock & Watson (2012)
