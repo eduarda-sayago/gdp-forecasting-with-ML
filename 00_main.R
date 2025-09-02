@@ -78,11 +78,14 @@ test <- get_stationarity(dataset)
 # -----------------Forecasting--------------------
 # ================================================
 
+df <- data.frame(data = 1:100, variable = rnorm(100))
 
 prepresult <- dataprep(type = 'tb', ind = 1:80, df = df, variable = 'variable', horizon = 1, n_lags = 4)
+result <- rolling_window(fn = get_sarima, df = df, nwindow = 7, horizon = 1, variable = 'variable')
 
-df <- data.frame(data = 1:100, variable = rnorm(100))
-result <- rolling_window(fn = get_sarima, df = df, nwindow = 5, horizon = 1, variable = 'variable')
+# result[["forecast"]]
+# plot(result[["forecast"]], type = "l")
+# plot(df, type = "l")
 
 
 #BENCHMARK

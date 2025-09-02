@@ -30,7 +30,7 @@ rolling_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
   
   rw <- apply(
     X = indmat,
-    MARGIN = 2,
+    MARGIN = 1,
     FUN = fn,
     df = df,
     horizon = horizon,
