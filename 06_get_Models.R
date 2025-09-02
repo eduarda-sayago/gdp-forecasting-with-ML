@@ -44,7 +44,7 @@ f_me = function(x,y){
 # ------------------SARIMA MODEL------------------
 # ================================================
 
-get_sarima = function(ind, df, variable, horizon, n_lags = 4){
+get_sarima = function(ind, df, variable, horizon, n_lags){
   
   #' Ajuste de Modelo SARIMA
   #'

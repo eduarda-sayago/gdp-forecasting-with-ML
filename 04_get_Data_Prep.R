@@ -22,7 +22,7 @@ dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4) {
   #' @export
   
   if (n_lags <= 1) {
-    stop("n_lags deve ser um inteiro maior do que 1.")
+    stop("n_lags must be an integer greater than 1.")
   }
   
   df <- df[ind, ]

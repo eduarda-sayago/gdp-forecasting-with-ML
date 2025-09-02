@@ -1,4 +1,4 @@
-####### MAIN ########
+# ------------------- Main -----------------------
 
 # ================================================
 # ------------------Packages----------------------
@@ -50,7 +50,7 @@ dataqrt <- do.call(cbind, stdata_q$results) %>% as.data.frame()
 
 
 quarter_ds <- aggregate_to_quarterly(stdata_m$results, stdata_m$info)
-
+#saveRDS(dataset, "qdataset.rds")
 
 # plot(quarter_ds[["results"]][["bage_precipitacao"]], type = "l") #for list within list
 # plot(data_q$pib_rs, type = "l") #for dataframe
@@ -66,21 +66,26 @@ dataqrt$date <- as.Date(dataqrt$date, origin = "1970-01-01")
 dataset <- merge(dataqrt, mq_results, by = "date")
 
 
+
 #plot(data_q$pib_rs, type = "l")
 #plot(dataqrt$pib_rs, type = "l")
 
 # ------- Making sure data is stationary ---------
 
 test <- get_stationarity(dataset)
+
+
 #rm("test")
 
 # ================================================
 # -----------------Forecasting--------------------
 # ================================================
+set.seed(123)
+df <- data.frame(data = 1:100, variable = rnorm(100), variable2 = rnorm(100))
 
-df <- data.frame(data = 1:100, variable = rnorm(100))
+x_in <- df[-c((nrow(df) - 4 + 1):nrow(df)), ]
 
-prepresult <- dataprep(type = 'tb', ind = 1:80, df = df, variable = 'variable', horizon = 1, n_lags = 4)
+prepresult <- dataprep(type = 'tb', ind = 1:80, df = df, variable = 'variable', horizon = 4, n_lags = 4)
 result <- rolling_window(fn = get_sarima, df = df, nwindow = 7, horizon = 1, variable = 'variable')
 
 # result[["forecast"]]
@@ -90,5 +95,13 @@ result <- rolling_window(fn = get_sarima, df = df, nwindow = 7, horizon = 1, var
 
 #BENCHMARK
 benchmark = call_models(data_q, 'Sarima', get_sarima, "pib_rs")
-benchmark = get_sarima(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
+
+# sum(is.nan(dataset$pib_rs)) # 0
+# sum(is.na(dataset$pib_rs)) # 0
+# str(dataset$pib_rs) # num
+# print(nrow(dataset)) # 92
+# print(length(y_in)) # 19
+# sd(dataset$pib_rs) # 0.080778
+# # date column is not the problem
+# str(dataset) # all num except date column
 
