@@ -1,5 +1,4 @@
 
-
 call_models = function(data, model_name, model_function, variable){
   
   #' Chamadas para Modelos de Previsão
@@ -20,14 +19,18 @@ call_models = function(data, model_name, model_function, variable){
   #' results <- call_models(data = df, model_name = "MyModel", model_function = my_model_function, variable = "variable")
   #'
   #' @export
+  library(ggplot2)
   
-  data = as.matrix(data)
+  date_col <- data[, 1]
+  data <- data[, -1]
+  data <- as.matrix(data)
   
   model_name <- model_name
   model_function <- model_function
   
-  nwindows = nrow(data)*0.25
+  nwindows = nrow(data)*0.3
   y_out <- tail(data[, variable], nwindows)
+  y_time <- tail(date_col, nwindows)
   
   model_list <- list()
   for_ind <- c(1, 4)
@@ -45,12 +48,10 @@ call_models = function(data, model_name, model_function, variable){
     cat(i, "\n")
   }
   
-  
   forecasts <- Reduce(
     f = cbind,
     x = lapply(model_list, function(x) head(x$forecast, nwindows))
   ) %>% as.matrix()
-
   
   plot.ts(y_out)
   lines(forecasts[, 1], col = 2)
@@ -62,5 +63,3 @@ call_models = function(data, model_name, model_function, variable){
   
   return(results)
 }
-
-

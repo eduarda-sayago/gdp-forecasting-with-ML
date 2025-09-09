@@ -1,7 +1,5 @@
-# ------------------- Main -----------------------
-
 # ================================================
-# ------------------Packages----------------------
+# ---------------------Main-----------------------
 # ================================================
 
 library(dplyr)
@@ -65,43 +63,46 @@ dataqrt$date <- as.Date(dataqrt$date, origin = "1970-01-01")
 
 dataset <- merge(dataqrt, mq_results, by = "date")
 
+#Adding dummies
+dataset$d_pandemic <- ifelse(dataset$date >= as.Date("2020-03-01") &
+                               dataset$date <= as.Date("2020-06-01"), 1, 0)
+dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
 
+## seasonal
+df <- data.frame(1:92)
+
+df$quarter <- lubridate::quarter(dataset$date)
+dataset$Q2 <- ifelse(df$quarter == 2, 1, 0)
+dataset$Q3 <- ifelse(df$quarter == 3, 1, 0)
+dataset$Q4 <- ifelse(df$quarter == 4, 1, 0)
 
 #plot(data_q$pib_rs, type = "l")
 #plot(dataqrt$pib_rs, type = "l")
 
-# ------- Making sure data is stationary ---------
+# --- Making sure data is stationary
 
 test <- get_stationarity(dataset)
-
-
-#rm("test")
+#rm(list= c("test"))
 
 # ================================================
 # -----------------Forecasting--------------------
 # ================================================
-set.seed(123)
-df <- data.frame(data = 1:100, variable = rnorm(100), variable2 = rnorm(100))
 
-x_in <- df[-c((nrow(df) - 4 + 1):nrow(df)), ]
+# Benchmark (SARIMA)
+benchmark = call_models(dataset, 'Sarima', get_sarima, "pib_rs")
 
-prepresult <- dataprep(type = 'tb', ind = 1:80, df = df, variable = 'variable', horizon = 4, n_lags = 4)
-result <- rolling_window(fn = get_sarima, df = df, nwindow = 7, horizon = 1, variable = 'variable')
+# Lasso model
+lasso_model = call_models(dataset, 'Lasso', get_lasso, "pib_rs")
 
-# result[["forecast"]]
-# plot(result[["forecast"]], type = "l")
-# plot(df, type = "l")
+# Elastic net model
+enet_model = call_models(dataset, 'Enet', get_elasticnet, "pib_rs")
+
+# Random Forest model
+rf_model1 = call_models(dataset, 'RandomForestOOB', get_rforest, "pib_rs")
+rf_model2 = call_models(dataset, 'RandomForestCV', get_rf, "pib_rs")
+rf_model3 = call_models(dataset, 'RF 3', get_random_forest, "pib_rs")
+
+# Neural Networks model
 
 
-#BENCHMARK
-benchmark = call_models(data_q, 'Sarima', get_sarima, "pib_rs")
-
-# sum(is.nan(dataset$pib_rs)) # 0
-# sum(is.na(dataset$pib_rs)) # 0
-# str(dataset$pib_rs) # num
-# print(nrow(dataset)) # 92
-# print(length(y_in)) # 19
-# sd(dataset$pib_rs) # 0.080778
-# # date column is not the problem
-# str(dataset) # all num except date column
-
+# ================================================

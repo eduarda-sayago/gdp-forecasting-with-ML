@@ -78,7 +78,7 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
     y = y_in, 
     stepwise = F, 
     approximation = F, 
-    stationary = F,
+    stationary = T,
     seasonal = T,
     start.p = 0,
     start.q = 0)
@@ -130,7 +130,7 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
     df = df,
     variable = variable,
     horizon = horizon,
-    n_lags = 4)
+    n_lags = n_lags)
   
   #INICIANDO AS VARIAVEIS
   y_in = data_in$y_in
