@@ -48,7 +48,6 @@ dataqrt <- do.call(cbind, stdata_q$results) %>% as.data.frame()
 
 
 quarter_ds <- aggregate_to_quarterly(stdata_m$results, stdata_m$info)
-#saveRDS(dataset, "qdataset.rds")
 
 # plot(quarter_ds[["results"]][["bage_precipitacao"]], type = "l") #for list within list
 # plot(data_q$pib_rs, type = "l") #for dataframe
@@ -73,8 +72,7 @@ dataset$d_pandemic <- ifelse(dataset$date >= as.Date("2020-03-01") &
                                dataset$date <= as.Date("2020-06-01"), 1, 0)
 dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
 
-#plot(data_q$pib_rs, type = "l")
-#plot(dataqrt$pib_rs, type = "l")
+#saveRDS(dataset, "dataset.rds")
 
 # --- Making sure data is stationary
 
