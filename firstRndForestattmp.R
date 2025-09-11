@@ -16,11 +16,11 @@ get_rforest <- function(ind, df, variable, horizon, n_lags) {
   )
   
   y_in <- data_in$y_in
-  x_in <- data_in$x_in
+  x_in <- as.data.frame(data_in$x_in)
   x_out <- data_in$x_out
+  x_out <- as.data.frame(matrix(x_out, nrow = 1))
+  colnames(x_out) <- colnames(x_in)
   
-  View(x_in)
-  View(x_out)
   
   # Tune mtry using OOB error
   p <- ncol(x_in)
@@ -34,6 +34,7 @@ get_rforest <- function(ind, df, variable, horizon, n_lags) {
       ntree = 500,
       nodesize = 5
     )
+    
     list(model = model, oob_error = model$mse[500])
   })
   
@@ -161,7 +162,7 @@ get_random_forest <- function(ind, df, variable, horizon, n_lags) {
   x_out <- as.data.frame(data_in$x_out)
   
   # --- CROSS-VALIDATION PARA ESCOLHA DO MTRY
-  set.seed(123)
+  set.seed(100)
   n <- nrow(x_in)
   k <- 5  # 5-fold CV
   

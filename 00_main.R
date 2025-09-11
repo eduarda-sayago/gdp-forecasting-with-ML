@@ -64,17 +64,14 @@ dataqrt$date <- as.Date(dataqrt$date, origin = "1970-01-01")
 dataset <- merge(dataqrt, mq_results, by = "date")
 
 #Adding dummies
+dummies <- data.frame(matrix(ncol = 0, nrow = 92))
+dummies$quarter <- lubridate::quarter(dataset$date)
+dataset$Q2 <- ifelse(dummies$quarter == 2, 1, 0)
+dataset$Q3 <- ifelse(dummies$quarter == 3, 1, 0)
+dataset$Q4 <- ifelse(dummies$quarter == 4, 1, 0)
 dataset$d_pandemic <- ifelse(dataset$date >= as.Date("2020-03-01") &
                                dataset$date <= as.Date("2020-06-01"), 1, 0)
 dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
-
-## seasonal
-df <- data.frame(1:92)
-
-df$quarter <- lubridate::quarter(dataset$date)
-dataset$Q2 <- ifelse(df$quarter == 2, 1, 0)
-dataset$Q3 <- ifelse(df$quarter == 3, 1, 0)
-dataset$Q4 <- ifelse(df$quarter == 4, 1, 0)
 
 #plot(data_q$pib_rs, type = "l")
 #plot(dataqrt$pib_rs, type = "l")
