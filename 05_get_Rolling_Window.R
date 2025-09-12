@@ -1,4 +1,4 @@
-rolling_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
+rolling_window <- function(fn, df, nwindow = 1, horizon, variable, verbose = TRUE, ...) {
   
   #' Janela Movel para Modelagem
   #'
@@ -28,15 +28,26 @@ rolling_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
     indmat[i, ] <- indmat[i - 1, ] + 1
   }
   
-  rw <- apply(
-    X = indmat,
-    MARGIN = 1,
-    FUN = fn,
-    df = df,
-    horizon = horizon,
-    variable = variable,
-    ...
-  )
+  # progress messages
+  rw <- vector(mode = "list", length = nrow(indmat))
+  if (isTRUE(verbose)) {
+    message(sprintf("  Rolling window: %d iterations (h=%d)", nrow(indmat), horizon))
+  }
+  
+  for (i in seq_len(nrow(indmat))) {
+    rw[[i]] <- fn(
+      ind = indmat[i, ],
+      df = df,
+      horizon = horizon,
+      variable = variable,
+      ...
+    )
+    if (isTRUE(verbose)) {
+      if (i %% max(1L, floor(nrow(indmat) / 10)) == 0L || i == nrow(indmat)) {
+        message(sprintf("    Progress: %d/%d (%.0f%%)", i, nrow(indmat), 100 * i / nrow(indmat)))
+      }
+    }
+  }
   forecast <- unlist(lapply(rw, function(x) x$forecast))
   outputs <- lapply(rw, function(x) x$outputs)
   return(list(forecast = forecast, outputs = outputs))

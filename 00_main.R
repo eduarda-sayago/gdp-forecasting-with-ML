@@ -19,6 +19,7 @@ source("07_call_Model.R")
 # ================================================
 # ---------------Calling Dataset------------------
 # ================================================
+message("[1/7] Loading data...")
 
 data_m <- readRDS("Data/base_NSA.rds")
 data_q <- read.csv2("Data/quarterly_NSA.csv")
@@ -31,8 +32,12 @@ sum(is.na(data_q))
 # ================================================
 # --------Preprocessing for Stationarity----------
 # ================================================
+message("[2/7] Applying Stock-Watson transforms (monthly)...")
 
 sw_list <- as.data.frame(read.csv2("Stock_watson.csv"))
+
+
+message("[3/7] Applying Stock-Watson transforms (quarterly)...")
 
 stdata_m <- get_stationary_SW(data_m, sw_list)
 info_stm <- stdata_m$info
@@ -45,7 +50,7 @@ dataqrt <- do.call(cbind, stdata_q$results) %>% as.data.frame()
 # ================================================
 # --------Transforming to Quarterly data----------
 # ================================================
-
+message("[4/7] Aggregating monthly series to quarterly...")
 
 quarter_ds <- aggregate_to_quarterly(stdata_m$results, stdata_m$info)
 
@@ -55,6 +60,7 @@ quarter_ds <- aggregate_to_quarterly(stdata_m$results, stdata_m$info)
 # ================================================
 # --------------Merging datasets------------------
 # ================================================
+message("[5/7] Merging datasets and building features...")
 
 mq_results <- do.call(cbind, quarter_ds$results) %>% as.data.frame()
 mq_results$date <- as.Date(mq_results$date, origin = "1970-01-01")
@@ -72,9 +78,11 @@ dataset$d_pandemic <- ifelse(dataset$date >= as.Date("2020-03-01") &
                                dataset$date <= as.Date("2020-06-01"), 1, 0)
 dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
 
-#saveRDS(dataset, "dataset.rds")
+saveRDS(dataset, "dataset.rds")
 
 # --- Making sure data is stationary
+message("[6/7] Checking stationarity (ADF ndiffs) on merged dataset...")
+
 
 test <- get_stationarity(dataset)
 #rm(list= c("test"))
@@ -83,21 +91,24 @@ test <- get_stationarity(dataset)
 # -----------------Forecasting--------------------
 # ================================================
 
+message("SARIMA")
 # Benchmark (SARIMA)
 benchmark = call_models(dataset, 'Sarima', get_sarima, "pib_rs")
 
+message("LASSO")
 # Lasso model
 lasso_model = call_models(dataset, 'Lasso', get_lasso, "pib_rs")
 
+message("Elastic Net")
 # Elastic net model
 enet_model = call_models(dataset, 'Enet', get_elasticnet, "pib_rs")
 
+message("Random Forest")
 # Random Forest model
 rf_model1 = call_models(dataset, 'RandomForestOOB', get_rforest, "pib_rs")
 rf_model2 = call_models(dataset, 'RandomForestCV', get_rf, "pib_rs")
-rf_model3 = call_models(dataset, 'RF 3', get_random_forest, "pib_rs")
 
-# Neural Networks model
+
 
 
 # ================================================

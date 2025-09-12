@@ -46,8 +46,7 @@ dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4) {
   colnames(x) <- names_x
   
   x_in <- x[-c((nrow(x) - horizon + 1):nrow(x)), ]
-  x_out <- x[nrow(x), ]
-  x_out <- t(as.vector(x_out))
+  x_out <- x[nrow(x), , drop = FALSE]
   y_in <- tail(y, nrow(x_in))
   
   return(list(x_in = x_in, x_out = x_out, y_in = y_in))

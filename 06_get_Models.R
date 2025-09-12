@@ -44,7 +44,7 @@ f_me = function(x,y){
 # ------------------SARIMA MODEL------------------
 # ================================================
 
-get_sarima = function(ind, df, variable, horizon, n_lags){
+get_sarima = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
   
   #' Ajuste de Modelo SARIMA
   #'
@@ -83,7 +83,7 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
     start.p = 0,
     start.q = 0)
   
-  print(reg_arima)
+  if (isTRUE(verbose)) print(reg_arima)
   
   for_arima_aux = forecast(
     object = reg_arima, 
@@ -91,7 +91,13 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
   
   forecasts = for_arima_aux$mean
   
-  results = list(forecasts = forecasts)
+  # Provide lightweight model details as outputs
+  outputs <- list(
+    coef = tryCatch(coef(reg_arima), error = function(e) NULL),
+    aic = tryCatch(AIC(reg_arima), error = function(e) NULL)
+  )
+  
+  results = list(forecast = as.numeric(forecasts), outputs = outputs)
   
   return (results)
   
@@ -101,7 +107,7 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
 # ------------------LASSO MODEL-------------------
 # ================================================
 
-get_lasso = function(ind, df, variable, horizon, n_lags){
+get_lasso = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
   
   #' Ajuste de Modelo Lasso
   #'
@@ -146,15 +152,16 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
     standardize = T,
     nfolds = 5)
   
+  # Only compute and print coefficient paths when verbose to save time
+  if (isTRUE(verbose)) {
   grid <- 10^seq(10, -2, length = 100)
   out = glmnet(x_in, y_in, alpha = 1, lambda = grid)
-  
   lasso.coef = predict(
     out, 
     type = "coefficients",
     s = cv_lasso$lambda.min)[1:41,]
-  
   print(lasso.coef[lasso.coef != 0])
+  }
   
   #PREVISAO
   opt_lasso = predict(
@@ -162,7 +169,13 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
     s = cv_lasso$lambda.min,
     newx = as.matrix(x_out, nrow = 1))
   
-  results = list(forecast = opt_lasso)
+  lasso_coef_mat <- tryCatch(coef(cv_lasso, s = cv_lasso$lambda.min), error = function(e) NULL)
+  lasso_coef <- tryCatch({
+    v <- rep(0, nrow(lasso_coef_mat)); names(v) <- rownames(lasso_coef_mat); v[lasso_coef_mat@i + 1] <- lasso_coef_mat@x; v
+  }, error = function(e) NULL)
+  outputs <- list(lambda_min = cv_lasso$lambda.min, coef = lasso_coef)
+  
+  results = list(forecast = opt_lasso, outputs = outputs)
   
   return(results)
   
@@ -172,7 +185,7 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
 # ---------------ELASTIC NET MODEL----------------
 # ================================================
 
-get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
+get_elasticnet <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
   
   
   #' Ajuste de Modelo Elastic Net
@@ -230,7 +243,11 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
   
   # Assuming 'cv_enet' is your trained model object
   best_lambda <- cv_enet$finalModel$lambdaOpt %>% print()
-  best_alpha <- cv_enet$finalModel$tuneValue[1] %>% as.numeric() %>% print()
+  best_alpha <- cv_enet$finalModel$tuneValue[1] %>% as.numeric()
+  if (isTRUE(verbose)) {
+    print(best_lambda)
+    print(best_alpha)
+  }
   opt_enet <- coef(cv_enet$finalModel, cv_enet$finalModel$lambdaOpt)
   
   x <- rep(0, ncol(x_in) + 1)
@@ -254,7 +271,149 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
     type = "response"
   ) # acho que retorna "the fitted values"
   
-  results <- list(forecast = opt_elasticnet)
+  # Outputs: best alpha/lambda and coefficients
+  enet_coef_mat <- tryCatch(coef(glmnet_aux, s = best_lambda), error = function(e) NULL)
+  enet_coef <- tryCatch({
+    v <- rep(0, nrow(enet_coef_mat)); names(v) <- rownames(enet_coef_mat); v[enet_coef_mat@i + 1] <- enet_coef_mat@x; v
+  }, error = function(e) NULL)
+  outputs <- list(best_lambda = best_lambda, best_alpha = best_alpha, coef = enet_coef)
+  
+  results <- list(forecast = opt_elasticnet, outputs = outputs)
+  
+  return(results)
+}
+
+# ================================================
+# --------------RANDOM FOREST MODEL---------------
+# ================================================
+
+# with oob
+get_rforest <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
+  
+  library(randomForest)
+  library(forecast)
+  
+  # Data preparation
+  data_in <- dataprep(
+    type = "default",
+    ind = ind,
+    df = df,
+    variable = variable,
+    horizon = horizon,
+    n_lags = n_lags
+  )
+  
+  y_in <- as.numeric(data_in$y_in)
+  x_in <- as.data.frame(data_in$x_in)
+  x_out <- as.data.frame(data_in$x_out)
+  
+  x_out <- x_out[, colnames(x_in), drop = FALSE]
+  
+  
+  # Tune mtry using OOB error
+  p <- ncol(x_in)
+  mtry_grid <- unique(pmax(1, c(1L, floor(sqrt(p)), floor(p/3), floor(p/2), p)))
+  
+  rf_list <- lapply(mtry_grid, function(m) {
+    model <- randomForest(
+      x = x_in,
+      y = y_in,
+      mtry = m,
+      ntree = 500,
+      nodesize = 5
+    )
+    
+    list(model = model, oob_error = model$mse[500])
+  })
+  
+  # Pick the best model
+  best <- rf_list[[which.min(sapply(rf_list, function(x) x$oob_error))]]
+  rf_opt <- best$model
+  
+  # Forecast
+  rf_forecast <- predict(rf_opt, newdata = x_out)
+  
+  return(list(
+    forecast = rf_forecast,
+    outputs = list(
+      rf_opt = rf_opt,
+      best_mtry = rf_opt$mtry
+    )
+  ))
+}
+
+#with k-fold cross-validation (caret)
+get_rf <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
+  
+  #' Ajuste de Modelo de Random Forest
+  #'
+  #' Esta função ajusta um modelo de Random Forest aos dados fornecidos e gera previsões.
+  #'
+  #' @param ind Índices das observações a serem utilizadas.
+  #' @param df Um data.frame contendo os dados.
+  #' @param variable Nome da variável dependente a ser modelada.
+  #' @param horizon Horizonte de previsão.
+  #' @param n_lags Número de defasagens a serem usadas na modelagem.
+  #' @return Uma lista contendo as previsões do modelo de Random Forest e informações sobre o modelo ajustado.
+  #'
+  #' @examples
+  #' results <- get_rf(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
+  
+  library(caret)
+  library(randomForest)
+  
+  # Preparação dos dados (mesmo estilo do boosting)
+  data_in <- dataprep(
+    type = 'default',
+    ind = ind,
+    df = df,
+    variable = variable,
+    horizon = horizon,
+    n_lags = n_lags
+  )
+  
+  y_in <- as.numeric(data_in$y_in)
+  x_in <- as.data.frame(data_in$x_in)
+  x_out <- as.data.frame(data_in$x_out)
+  
+  x_out <- x_out[, colnames(x_in), drop = FALSE]
+  
+  # CV setup
+  set.seed(100)
+  ctrl <- trainControl(method = "cv", number = 5)
+  
+  p <- ncol(x_in)
+  grid <- expand.grid(
+    mtry = unique(pmax(1, c(1L, floor(sqrt(p)), floor(p/3), floor(p/2), p)))
+  )
+  
+  
+  # Ajuste do modelo com CV
+  rf_cv <- train(
+    x = x_in,
+    y = y_in,
+    method = "rf",
+    trControl = ctrl,
+    tuneGrid = grid,
+    ntree = 500,
+    metric = "RMSE"
+  )
+  
+  if (isTRUE(verbose)) {
+    print(rf_cv$bestTune)
+  }
+  
+  # Previsão
+  rf_forecast <- predict(rf_cv, newdata = x_out)
+  
+  # Saída
+  results <- list(
+    forecast = as.numeric(rf_forecast),
+    outputs = list(
+      rf_cv = rf_cv,
+      best_mtry = rf_cv$bestTune$mtry
+    )
+  )
   
   return(results)
 }
