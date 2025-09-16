@@ -93,20 +93,20 @@ test <- get_stationarity(dataset)
 
 message("SARIMA")
 # Benchmark (SARIMA)
-benchmark = call_models(dataset, 'Sarima', get_sarima, "pib_rs")
+benchmark <- call_models(dataset, 'Sarima', get_sarima, "pib_rs")
 
 message("LASSO")
 # Lasso model
-lasso_model = call_models(dataset, 'Lasso', get_lasso, "pib_rs")
+lasso_model <- call_models(dataset, 'Lasso', get_lasso, "pib_rs")
 
 message("Elastic Net")
 # Elastic net model
-enet_model = call_models(dataset, 'Enet', get_elasticnet, "pib_rs")
+enet_model <- call_models(dataset, 'Enet', get_elasticnet, "pib_rs")
 
 message("Random Forest")
 # Random Forest model
-rf_model1 = call_models(dataset, 'RandomForestOOB', get_rforest, "pib_rs")
-rf_model2 = call_models(dataset, 'RandomForestCV', get_rf, "pib_rs")
+rf_model1 <- call_models(dataset, 'RandomForestOOB', get_rforest, "pib_rs")
+rf_model2 <- call_models(dataset, 'RandomForestCV', get_rf, "pib_rs")
 
 
 
