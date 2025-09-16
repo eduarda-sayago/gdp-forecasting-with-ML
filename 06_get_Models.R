@@ -60,9 +60,10 @@ get_sarima = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
   #' @examples
   #' results <- get_sarima(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
   
-  
   library(tidyverse)
   library(forecast)
+
+  set.seed(100)
   
   data_in = dataprep(
     ind = ind,
@@ -73,13 +74,14 @@ get_sarima = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
   
   #INICIANDO AS VARIAVEIS
   y_in = data_in$y_in
+  y_in_ts <- ts(y_in, frequency = 4)  # quarterly
   
   reg_arima = auto.arima(
-    y = y_in, 
-    stepwise = F, 
-    approximation = F, 
-    stationary = T,
-    seasonal = T,
+    y = y_in_ts, 
+    stepwise = FALSE, 
+    approximation = FALSE, 
+    stationary = FALSE,
+    seasonal = TRUE,
     start.p = 0,
     start.q = 0)
   
@@ -292,7 +294,8 @@ get_rforest <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
   
   library(randomForest)
   library(forecast)
-  
+  set.seed(100)
+
   # Data preparation
   data_in <- dataprep(
     type = "default",
