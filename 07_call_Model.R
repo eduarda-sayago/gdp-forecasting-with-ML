@@ -10,7 +10,7 @@ call_models = function(data, model_name, model_function, variable, verbose = TRU
   #' @param model_function A função que implementa o modelo de previsão a ser aplicado.
   #' @param variable O nome da variável dependente que será prevista.
   #' @return Uma lista contendo os seguintes elementos:
-  #' - me: O erro médio das previsões.
+  #' - mae: O erro absoluto médio das previsões.
   #' - rmse: A raiz do erro quadrático médio das previsões.
   #' - forecasts: As previsões geradas pelo modelo para o horizonte definido.
   #'
@@ -20,6 +20,7 @@ call_models = function(data, model_name, model_function, variable, verbose = TRU
   #'
   #' @export
   library(ggplot2)
+  library(magrittr)
   
   date_col <- data[, 1]
   data <- data[, -1]
@@ -28,7 +29,7 @@ call_models = function(data, model_name, model_function, variable, verbose = TRU
   model_name <- model_name
   model_function <- model_function
   
-  window_prop <- 0.30
+  window_prop <- 0.2
   nwindows = max(1L, as.integer(floor(nrow(data) * window_prop)))
   if (isTRUE(verbose)) message(sprintf("[%s] Starting with %d rolling windows (window_prop=%.2f)", model_name, nwindows, window_prop))
   y_out <- tail(data[, variable], nwindows)
@@ -58,18 +59,18 @@ call_models = function(data, model_name, model_function, variable, verbose = TRU
   
   # Compute metrics before plotting so we can display them
   rmse <- apply(forecasts, 2, f_rmse, y = y_out) %>% print()
-  me = apply(forecasts, 2, f_me, y = y_out) %>% print()
+  mae = apply(forecasts, 2, f_mae, y = y_out) %>% print()
   
   
   # Prepare enhanced plotting
-  actual_col <- "#1f77b4"   # blue
-  h1_col     <- "#d62728"   # red
-  h4_col     <- "#2ca02c"   # green
+  actual_col <- "black"
+  h1_col     <- "#d62728"
+  h4_col     <- "#1f77b4"
   main_title <- sprintf("%s Forecasts for %s", model_name, variable)
   sub_title  <- tryCatch(
-    sprintf("RMSE h=1: %.3f, h=4: %.3f  |  ME h=1: %.3f, h=4: %.3f",
+    sprintf("RMSE h=1: %.3f, h=4: %.3f  |  MAE h=1: %.3f, h=4: %.3f",
             rmse[1], ifelse(length(rmse) >= 2, rmse[2], NA),
-            me[1],   ifelse(length(me) >= 2,   me[2],   NA)),
+            mae[1],   ifelse(length(mae) >= 2,   mae[2],   NA)),
     error = function(e) ""
   )
   # Legend labels (use GDP wording when variable == 'pib_rs')
@@ -103,11 +104,11 @@ call_models = function(data, model_name, model_function, variable, verbose = TRU
     grid(col = "#dddddd")
     dev.off()
   }
-  if (isTRUE(verbose)) message(sprintf("[%s] RMSE: %s | ME: %s", model_name, paste(round(rmse,4), collapse=", "), paste(round(me,4), collapse=", ")))
+  if (isTRUE(verbose)) message(sprintf("[%s] RMSE: %s | MAE: %s", model_name, paste(round(rmse,4), collapse=", "), paste(round(mae,4), collapse=", ")))
   
   # Collect model outputs per horizon (list of per-window outputs)
   outputs_by_h <- setNames(lapply(for_ind, function(h) model_list[[h]]$outputs), paste0("h", for_ind))
-  results = list(me = me, rmse = rmse, forecasts = forecasts, outputs = outputs_by_h)
+  results = list(mae = mae, rmse = rmse, forecasts = forecasts, outputs = outputs_by_h)
   
   return(results)
 }

@@ -23,6 +23,7 @@ message("[1/7] Loading data...")
 
 data_m <- readRDS("Data/base_NSA.rds")
 data_q <- read.csv2("Data/quarterly_NSA.csv")
+
 data_q$date <- as.Date(data_q$date)
 
 data_m <- data_m[-((nrow(data_m)-1):nrow(data_m)), ] # remove empty rows
@@ -54,6 +55,7 @@ message("[4/7] Aggregating monthly series to quarterly...")
 
 quarter_ds <- aggregate_to_quarterly(stdata_m$results, stdata_m$info)
 
+
 # plot(quarter_ds[["results"]][["bage_precipitacao"]], type = "l") #for list within list
 # plot(data_q$pib_rs, type = "l") #for dataframe
 
@@ -68,8 +70,10 @@ dataqrt$date <- as.Date(dataqrt$date, origin = "1970-01-01")
 
 dataset <- merge(dataqrt, mq_results, by = "date")
 
+
 #Adding dummies
-dummies <- data.frame(matrix(ncol = 0, nrow = 92))
+n_obs <- nrow(dataset)
+dummies <- data.frame(matrix(ncol = 0, nrow = n_obs))
 dummies$quarter <- lubridate::quarter(dataset$date)
 dataset$Q2 <- ifelse(dummies$quarter == 2, 1, 0)
 dataset$Q3 <- ifelse(dummies$quarter == 3, 1, 0)
@@ -85,29 +89,49 @@ message("[6/7] Checking stationarity (ADF ndiffs) on merged dataset...")
 
 
 test <- get_stationarity(dataset)
-#rm(list= c("test"))
+rm(list= c("test"))
+
+acf(dataset$pib_rs, lag = 24)
+
+
+
+# ================================================
+# --------------Test data handling----------------
+# ================================================
+
+ts.plot(df$y)
+is_stattest <- get_stationarity(df)
+
+sw_test <- as.data.frame(read.csv2("SW_test.csv"))
+
+df_st <- get_stationary_SW(df, sw_test)
+df_info_st <- df_st$info
+df_st <- do.call(cbind, df_st$results) %>% as.data.frame()
+
 
 # ================================================
 # -----------------Forecasting--------------------
 # ================================================
 
+message("Mean")
+# Mean model
+mean_model <- call_models(df, 'Mean', get_mean, "y")
+
 message("SARIMA")
 # Benchmark (SARIMA)
-benchmark <- call_models(dataset, 'Sarima', get_sarima, "pib_rs")
+benchmark <- call_models(df, 'Sarima', get_sarima, "y")
 
 message("LASSO")
 # Lasso model
-lasso_model <- call_models(dataset, 'Lasso', get_lasso, "pib_rs")
+lasso_model <- call_models(df, 'Lasso', get_lasso, "y")
 
 message("Elastic Net")
 # Elastic net model
-enet_model <- call_models(dataset, 'Enet', get_elasticnet, "pib_rs")
+enet_model <- call_models(df, 'Enet', get_elasticnet, "y")
 
 message("Random Forest")
 # Random Forest model
-rf_model1 <- call_models(dataset, 'RandomForestOOB', get_rforest, "pib_rs")
-rf_model2 <- call_models(dataset, 'RandomForestCV', get_rf, "pib_rs")
-
-
+rf_model1 <- call_models(df, 'RandomForestOOB', get_rforest, "y")
+rf_model2 <- call_models(df, 'RandomForestCV', get_rf, "y")
 
 # ================================================

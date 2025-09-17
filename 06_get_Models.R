@@ -20,24 +20,48 @@ f_rmse = function(x, y){
 }
 
 # ================================================
-# ------------------ERRO MEDIO--------------------
+# --------------MEAN ABSOLUTE ERROR---------------
 # ================================================
 
-f_me = function(x,y){
+f_mae = function(x, y){
   
-  #' Cálculo do Erro Médio
+  #' Cálculo do Erro Médio Absoluto (MAE)
   #'
-  #' Esta função calcula o erro médio entre duas séries de valores.
+  #' Esta função calcula o erro médio absoluto entre duas séries de valores.
   #'
   #' @param x Um vetor de valores previstos.
   #' @param y Um vetor de valores reais.
-  #' @return O valor do erro médio entre as duas séries de valores.
+  #' @return O valor do erro médio absoluto entre as duas séries de valores.
   #'
   #' @examples
-  #' f_me(c(2, 3, 5), c(1, 2, 6)) # Retorna o erro médio entre os vetores
+  #' f_mae(c(2, 3, 5), c(1, 2, 6)) # Retorna o MAE entre os vetores
+  #'
   
-  
-  mean(y - x)
+  mean(abs(y - x))
+}
+
+# ================================================
+# ------------------MEAN MODEL--------------------
+# ================================================
+
+get_mean = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
+  data_in = dataprep(
+    type = 'default',
+    ind = ind,
+    df = df,
+    variable = variable,
+    horizon = horizon,
+    n_lags = n_lags
+  )
+
+  y_in = as.numeric(data_in$y_in)
+  mu = mean(y_in, na.rm = TRUE)
+
+  results = list(
+    forecast = rep(mu, horizon),
+    outputs = list(mean = mu)
+  )
+  return(results)
 }
 
 # ================================================

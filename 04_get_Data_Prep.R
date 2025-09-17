@@ -1,4 +1,4 @@
-dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4) {
+dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 8) {
   
   #' Preparação de Dados para Modelagem
   #'
