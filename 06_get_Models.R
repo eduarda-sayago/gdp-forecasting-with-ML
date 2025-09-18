@@ -193,6 +193,7 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
 }
 
 
+
 # ================================================
 # ---------------ELASTIC NET MODEL----------------
 # ================================================
@@ -289,7 +290,7 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
 # ================================================
 
 # with oob
-get_rforest <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
+get_rforest <- function(ind, df, variable, horizon, n_lags) {
   
   library(randomForest)
   library(forecast)
@@ -345,7 +346,7 @@ get_rforest <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
 }
 
 #with k-fold cross-validation (caret)
-get_rf <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
+get_rf <- function(ind, df, variable, horizon, n_lags) {
   
   #' Ajuste de Modelo de Random Forest
   #'
@@ -401,9 +402,7 @@ get_rf <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
     metric = "RMSE"
   )
   
-  if (isTRUE(verbose)) {
     print(rf_cv$bestTune)
-  }
   
   # Previsão
   rf_forecast <- predict(rf_cv, newdata = x_out)

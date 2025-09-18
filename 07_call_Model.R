@@ -1,5 +1,4 @@
-
-call_models = function(data, model_name, model_function, variable, type = "tb"){
+call_models = function(data, model_name, model_function, variable, type = "default"){
   
   #' Chamadas para Modelos de Previsão
   #'
@@ -26,7 +25,7 @@ call_models = function(data, model_name, model_function, variable, type = "tb"){
   model_name <- model_name
   model_function <- model_function
   
-  nwindows = nrow(data)*0.25
+  nwindows = round(nrow(data)*0.3)
   y_out <- tail(data[, variable], nwindows)
   
   #if (type == 'tb'){
@@ -34,7 +33,6 @@ call_models = function(data, model_name, model_function, variable, type = "tb"){
   #    select(-c(1)) %>% 
   #    as.matrix()
   #}
-  
   
   model_list <- list()
   for_ind <- c(1, 4)
@@ -57,10 +55,14 @@ call_models = function(data, model_name, model_function, variable, type = "tb"){
     f = cbind,
     x = lapply(model_list, function(x) head(x$forecast, nwindows))
   ) %>% as.matrix()
-  print(forecasts)
   
-  plot.ts(y_out)
-  lines(forecasts[, 1], col = 2)
+  for (i in for_ind) {
+    col_idx <- match(i, for_ind)  # find which column corresponds to horizon i
+    
+    plot.ts(y_out, 
+            main = paste0("Forecast with ", model_name, " (horizon = ", i, ")"))
+    lines(forecasts[, col_idx], col = 2)
+  }
   
   rmse <- apply(forecasts, 2, f_rmse, y = y_out) %>% print()
   mae = apply(forecasts, 2, f_mae, y = y_out) %>% print()

@@ -45,6 +45,8 @@ quarter_dates
 df <- data.frame(date = quarter_dates, y = y, x1 = x1, x2 = x2, other_X)
 head(df)
 
-ts.plot(df$y)
-is_stattest <- get_stationarity(df)
+#ts.plot(df$y)
+#is_stattest <- get_stationarity(df)
 # y = 0.6 * y[t-1] + 1.2 * x1[t-1] -0.8 * x2[t-2] + erro(rnorm(1, 0, 1))
+
+#saveRDS(df, "df_test.rds")

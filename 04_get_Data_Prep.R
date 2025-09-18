@@ -1,4 +1,4 @@
-dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4) {
+dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4, dum_cols = NULL) {
   
   #' Preparação de Dados para Modelagem
   #'
@@ -21,32 +21,80 @@ dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4) {
   #'
   #' @export
   
-  if (n_lags <= 1) {
-    stop("n_lags deve ser um inteiro maior do que 1.")
-  }
+  if (n_lags <= 1) stop("n_lags deve ser um inteiro maior do que 1.")
   
   df <- df[ind, ]
   y <- df[, variable]
   
-  if (type == 'tb'){
-    x_aux = df[,-1]
-  } else{
-    x_aux = df
+  if (type == 'tb') {
+    x_aux <- df[,-1, drop = FALSE]
+  } else {
+    x_aux <- df
   }
   
-  x <- embed(as.matrix(x_aux), n_lags)
-  
-  names_x <- NULL
-  for (i in seq_len(n_lags)) {
-    names_x <- c(
-      names_x,
-      paste(colnames(x_aux), "_lag_", horizon + i - 1, sep = "")
-    )
+  # validate dummy columns
+  if (!is.null(dum_cols)) {
+    if (!all(dum_cols %in% colnames(x_aux))) {
+      stop("Algumas dum_cols não existem em x_aux.")
+    }
   }
-  colnames(x) <- names_x
   
-  x_in <- x[-c((nrow(x) - horizon + 1):nrow(x)), ]
-  x_out <- x[nrow(x), ]
+  # separate numeric (to be lagged) and dummy (no lags)
+  if (is.null(dum_cols)) {
+    x_numeric <- as.matrix(x_aux)
+    dum_mat <- NULL
+    dum_names <- NULL
+  } else {
+    dum_names <- dum_cols
+    dum_mat <- as.matrix(x_aux[, dum_names, drop = FALSE])
+    numeric_names <- setdiff(colnames(x_aux), dum_names)
+    if (length(numeric_names) > 0) {
+      x_numeric <- as.matrix(x_aux[, numeric_names, drop = FALSE])
+    } else {
+      # no numeric columns to lag
+      x_numeric <- matrix(nrow = nrow(x_aux), ncol = 0)
+      colnames(x_numeric) <- character(0)
+    }
+  }
+  
+  # create lagged matrix for numeric predictors (if any)
+  if (ncol(x_numeric) > 0) {
+    x_lagged <- embed(x_numeric, n_lags)
+    # build names for lagged numeric vars
+    names_x <- NULL
+    for (i in seq_len(n_lags)) {
+      names_x <- c(names_x,
+                   paste(colnames(x_numeric), "_lag_", horizon + i - 1, sep = ""))
+    }
+    colnames(x_lagged) <- names_x
+  } else {
+    # zero-column matrix with correct number of rows = T - n_lags + 1
+    rows_embed <- nrow(x_aux) - n_lags + 1
+    if (rows_embed <= 0) stop("Not enough rows to create embed matrix with given n_lags.")
+    x_lagged <- matrix(nrow = rows_embed, ncol = 0)
+    colnames(x_lagged) <- character(0)
+  }
+  
+  # align dummy rows to embed rows: rows in embed correspond to original indices n_lags..T
+  if (!is.null(dum_mat)) {
+    aligned_dum <- dum_mat[n_lags:nrow(dum_mat), , drop = FALSE]
+    colnames(aligned_dum) <- dum_names
+  } else {
+    aligned_dum <- NULL
+  }
+  
+  # combine lagged numeric and (non-lagged) dummies
+  if (!is.null(aligned_dum) && ncol(x_lagged) > 0) {
+    x <- cbind(x_lagged, aligned_dum)
+  } else if (!is.null(aligned_dum)) {
+    x <- aligned_dum
+  } else {
+    x <- x_lagged
+  }
+  
+  # splitting
+  x_in <- x[-c((nrow(x) - horizon + 1):nrow(x)), , drop = FALSE]
+  x_out <- x[nrow(x), , drop = FALSE]
   x_out <- t(as.vector(x_out))
   y_in <- tail(y, nrow(x_in))
   
