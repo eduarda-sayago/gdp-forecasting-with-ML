@@ -1,5 +1,5 @@
 
-call_models = function(data, model_name, model_function, variable, verbose = TRUE){
+call_models = function(data, model_name, model_function, variable, type = "tb"){
   
   #' Chamadas para Modelos de Previsão
   #'
@@ -9,6 +9,7 @@ call_models = function(data, model_name, model_function, variable, verbose = TRU
   #' @param model_name O nome do modelo a ser utilizado (apenas um rótulo).
   #' @param model_function A função que implementa o modelo de previsão a ser aplicado.
   #' @param variable O nome da variável dependente que será prevista.
+  #' @param type O tipo de dados. O padrão é "default".
   #' @return Uma lista contendo os seguintes elementos:
   #' - mae: O erro absoluto médio das previsões.
   #' - rmse: A raiz do erro quadrático médio das previsões.
@@ -19,21 +20,21 @@ call_models = function(data, model_name, model_function, variable, verbose = TRU
   #' results <- call_models(data = df, model_name = "MyModel", model_function = my_model_function, variable = "variable")
   #'
   #' @export
-  library(ggplot2)
-  library(magrittr)
   
-  date_col <- data[, 1]
-  data <- data[, -1]
-  data <- as.matrix(data)
+  data = as.matrix(data)
   
   model_name <- model_name
   model_function <- model_function
   
-  window_prop <- 0.2
-  nwindows = max(1L, as.integer(floor(nrow(data) * window_prop)))
-  if (isTRUE(verbose)) message(sprintf("[%s] Starting with %d rolling windows (window_prop=%.2f)", model_name, nwindows, window_prop))
+  nwindows = nrow(data)*0.25
   y_out <- tail(data[, variable], nwindows)
-  y_time <- tail(date_col, nwindows)
+  
+  #if (type == 'tb'){
+  #  data <- as.data.frame(data) %>%
+  #    select(-c(1)) %>% 
+  #    as.matrix()
+  #}
+  
   
   model_list <- list()
   for_ind <- c(1, 4)
@@ -45,70 +46,26 @@ call_models = function(data, model_name, model_function, variable, verbose = TRU
       nwindow = nwindows + i - 1,
       horizon = i,
       variable = variable,
-      n_lags = 4,
-      verbose = verbose
+      n_lags = 4
     )
     model_list[[i]] <- model
-    if (isTRUE(verbose)) message(sprintf("[%s] Finished horizon h=%d", model_name, i))
+    cat(i, "\n")
   }
+  
   
   forecasts <- Reduce(
     f = cbind,
     x = lapply(model_list, function(x) head(x$forecast, nwindows))
   ) %>% as.matrix()
+  print(forecasts)
   
-  # Compute metrics before plotting so we can display them
+  plot.ts(y_out)
+  lines(forecasts[, 1], col = 2)
+  
   rmse <- apply(forecasts, 2, f_rmse, y = y_out) %>% print()
   mae = apply(forecasts, 2, f_mae, y = y_out) %>% print()
   
-  
-  # Prepare enhanced plotting
-  actual_col <- "black"
-  h1_col     <- "#d62728"
-  h4_col     <- "#1f77b4"
-  main_title <- sprintf("%s Forecasts for %s", model_name, variable)
-  sub_title  <- tryCatch(
-    sprintf("RMSE h=1: %.3f, h=4: %.3f  |  MAE h=1: %.3f, h=4: %.3f",
-            rmse[1], ifelse(length(rmse) >= 2, rmse[2], NA),
-            mae[1],   ifelse(length(mae) >= 2,   mae[2],   NA)),
-    error = function(e) ""
-  )
-  # Legend labels (use GDP wording when variable == 'pib_rs')
-  obs_label <- if (identical(variable, "pib_rs")) "Observed GDP" else "Observed"
-  h1_label  <- if (identical(variable, "pib_rs")) "Predicted GDP (h=1)" else "Forecast h=1"
-  h4_label  <- if (identical(variable, "pib_rs")) "Predicted GDP (h=4)" else "Forecast h=4"
-  
-  if (interactive()) {
-    plot(y_time, y_out, type = "l", col = actual_col, lwd = 2,
-         xlab = "Date", ylab = if (identical(variable, "pib_rs")) "GDP (pib_rs)" else variable,
-         main = main_title, sub = sub_title)
-    if (ncol(forecasts) >= 1) lines(y_time, forecasts[, 1], col = h1_col, lwd = 2)
-    if (ncol(forecasts) >= 2) lines(y_time, forecasts[, 2], col = h4_col, lwd = 2)
-    legend("topleft",
-           legend = c(obs_label, h1_label, if (ncol(forecasts) >= 2) h4_label else NULL),
-           col    = c(actual_col, h1_col, if (ncol(forecasts) >= 2) h4_col else NULL),
-           lty = 1, lwd = 2, bty = "n")
-  } else {
-    plots_dir <- file.path("plots")
-    if (!dir.exists(plots_dir)) dir.create(plots_dir, recursive = TRUE, showWarnings = FALSE)
-    png(file.path(plots_dir, paste0(model_name, "_forecast.png")), width = 1000, height = 600)
-    plot(y_time, y_out, type = "l", col = actual_col, lwd = 2,
-         xlab = "Date", ylab = if (identical(variable, "pib_rs")) "GDP (pib_rs)" else variable,
-         main = main_title, sub = sub_title)
-    if (ncol(forecasts) >= 1) lines(y_time, forecasts[, 1], col = h1_col, lwd = 2)
-    if (ncol(forecasts) >= 2) lines(y_time, forecasts[, 2], col = h4_col, lwd = 2)
-    legend("topleft",
-           legend = c(obs_label, h1_label, if (ncol(forecasts) >= 2) h4_label else NULL),
-           col    = c(actual_col, h1_col, if (ncol(forecasts) >= 2) h4_col else NULL),
-           lty = 1, lwd = 2, bty = "n")
-    grid(col = "#dddddd")
-    dev.off()
-  }
-  if (isTRUE(verbose)) message(sprintf("[%s] RMSE: %s | MAE: %s", model_name, paste(round(rmse,4), collapse=", "), paste(round(mae,4), collapse=", ")))
-  
-  # Collect model outputs per horizon (list of per-window outputs)
-  outputs_by_h <- setNames(lapply(for_ind, function(h) model_list[[h]]$outputs), paste0("h", for_ind))
-  results = list(mae = mae, rmse = rmse, forecasts = forecasts, outputs = outputs_by_h)
+  results = list(mae = mae, rmse = rmse, forecasts = forecasts)
   
   return(results)
 }

@@ -44,9 +44,9 @@ f_mae = function(x, y){
 # ------------------MEAN MODEL--------------------
 # ================================================
 
-get_mean = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
+get_mean = function(ind, df, variable, horizon, n_lags){
   data_in = dataprep(
-    type = 'default',
+    type = 'tb',
     ind = ind,
     df = df,
     variable = variable,
@@ -55,7 +55,7 @@ get_mean = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
   )
 
   y_in = as.numeric(data_in$y_in)
-  mu = mean(y_in, na.rm = TRUE)
+  mu = mean(y_in)
 
   results = list(
     forecast = rep(mu, horizon),
@@ -68,7 +68,7 @@ get_mean = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
 # ------------------SARIMA MODEL------------------
 # ================================================
 
-get_sarima = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
+get_sarima = function(ind, df, variable, horizon, n_lags){
   
   #' Ajuste de Modelo SARIMA
   #'
@@ -84,10 +84,9 @@ get_sarima = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
   #' @examples
   #' results <- get_sarima(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
   
+  
   library(tidyverse)
   library(forecast)
-
-  set.seed(100)
   
   data_in = dataprep(
     ind = ind,
@@ -98,18 +97,17 @@ get_sarima = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
   
   #INICIANDO AS VARIAVEIS
   y_in = data_in$y_in
-  y_in_ts <- ts(y_in, frequency = 4)  # quarterly
   
   reg_arima = auto.arima(
-    y = y_in_ts, 
-    stepwise = FALSE, 
-    approximation = FALSE, 
-    stationary = FALSE,
-    seasonal = TRUE,
+    y = y_in, 
+    stepwise = F, 
+    approximation = F, 
+    stationary = F,
+    seasonal = T,
     start.p = 0,
     start.q = 0)
   
-  if (isTRUE(verbose)) print(reg_arima)
+  print(reg_arima)
   
   for_arima_aux = forecast(
     object = reg_arima, 
@@ -117,13 +115,7 @@ get_sarima = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
   
   forecasts = for_arima_aux$mean
   
-  # Provide lightweight model details as outputs
-  outputs <- list(
-    coef = tryCatch(coef(reg_arima), error = function(e) NULL),
-    aic = tryCatch(AIC(reg_arima), error = function(e) NULL)
-  )
-  
-  results = list(forecast = as.numeric(forecasts), outputs = outputs)
+  results = list(forecasts = forecasts)
   
   return (results)
   
@@ -133,7 +125,7 @@ get_sarima = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
 # ------------------LASSO MODEL-------------------
 # ================================================
 
-get_lasso = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
+get_lasso = function(ind, df, variable, horizon, n_lags){
   
   #' Ajuste de Modelo Lasso
   #'
@@ -162,7 +154,7 @@ get_lasso = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
     df = df,
     variable = variable,
     horizon = horizon,
-    n_lags = n_lags)
+    n_lags = 4)
   
   #INICIANDO AS VARIAVEIS
   y_in = data_in$y_in
@@ -178,16 +170,15 @@ get_lasso = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
     standardize = T,
     nfolds = 5)
   
-  # Only compute and print coefficient paths when verbose to save time
-  if (isTRUE(verbose)) {
   grid <- 10^seq(10, -2, length = 100)
   out = glmnet(x_in, y_in, alpha = 1, lambda = grid)
+  
   lasso.coef = predict(
     out, 
     type = "coefficients",
     s = cv_lasso$lambda.min)[1:41,]
+  
   print(lasso.coef[lasso.coef != 0])
-  }
   
   #PREVISAO
   opt_lasso = predict(
@@ -195,23 +186,18 @@ get_lasso = function(ind, df, variable, horizon, n_lags, verbose = TRUE){
     s = cv_lasso$lambda.min,
     newx = as.matrix(x_out, nrow = 1))
   
-  lasso_coef_mat <- tryCatch(coef(cv_lasso, s = cv_lasso$lambda.min), error = function(e) NULL)
-  lasso_coef <- tryCatch({
-    v <- rep(0, nrow(lasso_coef_mat)); names(v) <- rownames(lasso_coef_mat); v[lasso_coef_mat@i + 1] <- lasso_coef_mat@x; v
-  }, error = function(e) NULL)
-  outputs <- list(lambda_min = cv_lasso$lambda.min, coef = lasso_coef)
-  
-  results = list(forecast = opt_lasso, outputs = outputs)
+  results = list(forecast = opt_lasso)
   
   return(results)
   
 }
 
+
 # ================================================
 # ---------------ELASTIC NET MODEL----------------
 # ================================================
 
-get_elasticnet <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
+get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
   
   
   #' Ajuste de Modelo Elastic Net
@@ -269,11 +255,7 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
   
   # Assuming 'cv_enet' is your trained model object
   best_lambda <- cv_enet$finalModel$lambdaOpt %>% print()
-  best_alpha <- cv_enet$finalModel$tuneValue[1] %>% as.numeric()
-  if (isTRUE(verbose)) {
-    print(best_lambda)
-    print(best_alpha)
-  }
+  best_alpha <- cv_enet$finalModel$tuneValue[1] %>% as.numeric() %>% print()
   opt_enet <- coef(cv_enet$finalModel, cv_enet$finalModel$lambdaOpt)
   
   x <- rep(0, ncol(x_in) + 1)
@@ -297,14 +279,7 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags, verbose = TRUE) {
     type = "response"
   ) # acho que retorna "the fitted values"
   
-  # Outputs: best alpha/lambda and coefficients
-  enet_coef_mat <- tryCatch(coef(glmnet_aux, s = best_lambda), error = function(e) NULL)
-  enet_coef <- tryCatch({
-    v <- rep(0, nrow(enet_coef_mat)); names(v) <- rownames(enet_coef_mat); v[enet_coef_mat@i + 1] <- enet_coef_mat@x; v
-  }, error = function(e) NULL)
-  outputs <- list(best_lambda = best_lambda, best_alpha = best_alpha, coef = enet_coef)
-  
-  results <- list(forecast = opt_elasticnet, outputs = outputs)
+  results <- list(forecast = opt_elasticnet)
   
   return(results)
 }

@@ -1,4 +1,4 @@
-dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 8) {
+dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4) {
   
   #' Preparação de Dados para Modelagem
   #'
@@ -22,7 +22,7 @@ dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 8) {
   #' @export
   
   if (n_lags <= 1) {
-    stop("n_lags must be an integer greater than 1.")
+    stop("n_lags deve ser um inteiro maior do que 1.")
   }
   
   df <- df[ind, ]
@@ -46,7 +46,8 @@ dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 8) {
   colnames(x) <- names_x
   
   x_in <- x[-c((nrow(x) - horizon + 1):nrow(x)), ]
-  x_out <- x[nrow(x), , drop = FALSE]
+  x_out <- x[nrow(x), ]
+  x_out <- t(as.vector(x_out))
   y_in <- tail(y, nrow(x_in))
   
   return(list(x_in = x_in, x_out = x_out, y_in = y_in))

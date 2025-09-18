@@ -1,13 +1,14 @@
 #### Gather monthly data
-# 
-# # Packages
+
+
+# Packages
 library(dplyr)
 library(readr)
 library(lubridate)
 library(tidyr)
 
-# Raw data
 
+# Raw data
 nacional <- read.csv("Data/data_NSA/nacional_mensal.csv")
 regional <- read.csv("Data/data_NSA/regional_mensal.csv")
 meteorologicos <- read.csv("Data/data_NSA/meteorologicos_mensal.csv")
@@ -20,6 +21,9 @@ ipea = ipea[-283:-284,-1]
 
 nacional = nacional[-283,] 
 regional = regional[-283,]
+
+# ALL THE 
+
 
 # base_NSA = cbind(ipea,
 #                  nacional,
@@ -40,7 +44,8 @@ base_noweather[,1] <- as.Date(base_noweather[,1])
 base_noweather <- base_noweather %>% arrange(base_noweather[,1])
 
 saveRDS(base_noweather, "base_noweather.rds")
-# rm(list = setdiff(ls(), c("base_noweather", "base_NSA")))
+
+#rm(list = setdiff(ls(), c("base_NSA")))
 
 # Raw data w/ Seasonal adjustment (if available)
 

@@ -15,6 +15,7 @@ source("04_get_Data_Prep.R")
 source("05_get_Rolling_Window.R")
 source("06_get_Models.R")
 source("07_call_Model.R")
+rm(setdiff(list(c("ipea", ))))
 
 # ================================================
 # ---------------Calling Dataset------------------
@@ -93,20 +94,26 @@ rm(list= c("test"))
 
 acf(dataset$pib_rs, lag = 24)
 
-
+readrd
 
 # ================================================
 # --------------Test data handling----------------
 # ================================================
 
 ts.plot(df$y)
-is_stattest <- get_stationarity(df)
+
 
 sw_test <- as.data.frame(read.csv2("SW_test.csv"))
 
 df_st <- get_stationary_SW(df, sw_test)
 df_info_st <- df_st$info
 df_st <- do.call(cbind, df_st$results) %>% as.data.frame()
+
+dataprep_test <- dataprep(type = 'tb', ind = 1:80, df = df, variable = 'y', horizon = 4, n_lags = 2)
+x_in <- as.data.frame(dataprep_test[["x_in"]])
+x_out <- as.data.frame(dataprep_test[["x_out"]])
+y_in <- as.data.frame(dataprep_test[["y_in"]])
+
 
 
 # ================================================
