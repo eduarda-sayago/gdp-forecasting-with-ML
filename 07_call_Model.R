@@ -50,19 +50,26 @@ call_models = function(data, model_name, model_function, variable, type = "defau
     cat(i, "\n")
   }
   
-  
   forecasts <- Reduce(
     f = cbind,
     x = lapply(model_list, function(x) head(x$forecast, nwindows))
   ) %>% as.matrix()
   
+  
   for (i in for_ind) {
+    filename <- paste0("forecast ",model_name,"-horizon-" , i, ".png")
+    filepath <- file.path("Plots", filename)
+    png(filepath, width = 1000, height = 600)
+    
     col_idx <- match(i, for_ind)  # find which column corresponds to horizon i
     
     plot.ts(y_out, 
-            main = paste0("Forecast with ", model_name, " (horizon = ", i, ")"))
-    lines(forecasts[, col_idx], col = 2)
+            main = paste0("Forecast with ", model_name, " (horizon = ", i, ")"),
+            lwd = 2)
+    lines(forecasts[, col_idx], col = 2, lwd = 2)
+    dev.off()
   }
+  
   
   rmse <- apply(forecasts, 2, f_rmse, y = y_out) %>% print()
   mae = apply(forecasts, 2, f_mae, y = y_out) %>% print()

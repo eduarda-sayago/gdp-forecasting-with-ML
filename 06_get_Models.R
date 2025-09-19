@@ -37,7 +37,7 @@ f_mae = function(x, y){
   #' f_mae(c(2, 3, 5), c(1, 2, 6)) # Retorna o MAE entre os vetores
   #'
   
-  mean(abs(y - x))
+  mean(abs(x - y))
 }
 
 # ================================================
@@ -140,7 +140,7 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
   #'
   #' @examples
   #' results <- get_lasso(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
-  
+    
   set.seed(100)
   
   library(glmnet)

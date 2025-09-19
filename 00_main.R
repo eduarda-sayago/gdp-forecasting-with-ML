@@ -71,7 +71,6 @@ dataqrt$date <- as.Date(dataqrt$date, origin = "1970-01-01")
 
 dataset <- merge(dataqrt, mq_results, by = "date")
 
-
 #Adding dummies
 dummies <- data.frame(matrix(ncol = 0, nrow = 92))
 dummies$quarter <- lubridate::quarter(dataset$date)
@@ -87,7 +86,6 @@ saveRDS(dataset, "dataset.rds")
 date = dataset$date
 dataset$date <- NULL
 dataset[] <- lapply(dataset, as.numeric)
-
 
 # --- Making sure data is stationary
 message("[6/7] Checking stationarity (ADF ndiffs) on merged dataset...")
@@ -109,6 +107,7 @@ n_obs <- nrow(df)
 dummies <- data.frame(matrix(ncol = 0, nrow = n_obs))
 dummies$quarter <- lubridate::quarter(df$date)
 df$Q2 <- ifelse(dummies$quarter == 2, 1, 0)
+
 
 datest = df$date
 df$date <- NULL
@@ -147,6 +146,22 @@ sarima_model <- call_models(dataset, 'Sarima', get_sarima, "pib_rs")
 sarimah1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,1])
 sarimah4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,2])
 
+matplot(sarimah1$date, sarimah1[, c("orig_recon", "pred_recon")], 
+        type = "l", lty = 1, lwd = 2, col = c("black","red"),
+        ylab = "Value", xlab = "Date", main = "Observed vs Forecast")
+#legend("top",legend = c("Original", "Forecast"),
+#       col = c("black","red"), lty = 1, lwd = 2)
+
+
+message("LASSO")
+# Lasso model
+lasso_model <- call_models(dataset, 'Lasso', get_lasso, "pib_rs")
+# h=1 RMSE: 0.05619033; MAE: 0.06089886  
+# h=4 RMSE: 0.03669128; MAE: 0.04466303 
+
+lassoh1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = lasso_model$forecasts[,1])
+lassoh4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = lasso_model$forecasts[,2])
+
 # anchor (value before first diff row)
 y0 <- 129.1651999
 log_y0 <- log(y0)
@@ -170,23 +185,13 @@ sarimah1$pred_recon  <- y_recon_pred
 
 plot(tail(data_q[,2], 28), sarimah1$orig_recon)
 
-matplot(sarimah1$date, sarimah1[, c("orig_recon", "pred_recon")], 
+
+matplot(lassoh1$date, lassoh1[, c("orig_recon", "pred_recon")], 
         type = "l", lty = 1, lwd = 2, col = c("black","red"),
-        ylab = "Value", xlab = "Date", main = "Observed vs Forecast")
-legend("topleft", legend = c("Original", "Forecast"),
-       col = c("black","red"), lty = 1, lwd = 2)
-
-message("LASSO")
-# Lasso model
-#lasso_model <- call_models(df, 'Lasso (test)', get_lasso, "y")
-lasso_model <- call_models(dataset, 'Lasso', get_lasso, "pib_rs")
-# h=1 RMSE: 0.05619033; MAE: 0.06089886  
-# h=4 RMSE: 0.03669128; MAE: 0.04466303 
-
+        ylab = "Value", xlab = "Date", main = "LASSO - Observed vs Forecast")
 
 message("Elastic Net")
 # Elastic net model
-#enet_model <- call_models(df, 'Enet', get_elasticnet, "y")
 enet_model <- call_models(dataset, 'Enet', get_elasticnet, "pib_rs")
 # h=1 RMSE: 0.05440103; MAE: 0.05253469   
 # h=4 RMSE: 0.04112094; MAE: 0.03919072 
