@@ -146,11 +146,20 @@ sarima_model <- call_models(dataset, 'Sarima', get_sarima, "pib_rs")
 sarimah1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,1])
 sarimah4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,2])
 
+# Checking series untransformed (back to original)
+y0 <- 129.1651999
+log_y0 <- log(y0)
+z_orig  <- sarimah1$original
+z_pred  <- sarimah1$predito
+log_recon_orig <- log_y0 + cumsum(z_orig)
+log_recon_pred <- log_y0 + cumsum(z_pred)
+y_recon_orig <- exp(log_recon_orig)
+y_recon_pred <- exp(log_recon_pred)
+sarimah1$orig_recon  <- y_recon_orig
+sarimah1$pred_recon  <- y_recon_pred
 matplot(sarimah1$date, sarimah1[, c("orig_recon", "pred_recon")], 
         type = "l", lty = 1, lwd = 2, col = c("black","red"),
-        ylab = "Value", xlab = "Date", main = "Observed vs Forecast")
-#legend("top",legend = c("Original", "Forecast"),
-#       col = c("black","red"), lty = 1, lwd = 2)
+        ylab = "Value", xlab = "Date", main = "SARIMA - Observed vs Forecast")
 
 
 message("LASSO")
@@ -162,42 +171,49 @@ lasso_model <- call_models(dataset, 'Lasso', get_lasso, "pib_rs")
 lassoh1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = lasso_model$forecasts[,1])
 lassoh4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = lasso_model$forecasts[,2])
 
-# anchor (value before first diff row)
-y0 <- 129.1651999
-log_y0 <- log(y0)
-
-# transformed series in the dataframe (assumed to be diff(log(y)))
-z_orig  <- sarimah1$original
-z_pred  <- sarimah1$predito
-
-# undo differencing: cumulative sum starting at log(y0)
+# Checking series untransformed (back to original)
+z_orig  <- lassoh1$original
+z_pred  <- lassoh1$predito
 log_recon_orig <- log_y0 + cumsum(z_orig)
 log_recon_pred <- log_y0 + cumsum(z_pred)
-
-# undo log
 y_recon_orig <- exp(log_recon_orig)
 y_recon_pred <- exp(log_recon_pred)
-
-
-# add back to dataframe
-sarimah1$orig_recon  <- y_recon_orig
-sarimah1$pred_recon  <- y_recon_pred
-
-plot(tail(data_q[,2], 28), sarimah1$orig_recon)
-
-
+lassoh1$orig_recon  <- y_recon_orig
+lassoh1$pred_recon  <- y_recon_pred
 matplot(lassoh1$date, lassoh1[, c("orig_recon", "pred_recon")], 
         type = "l", lty = 1, lwd = 2, col = c("black","red"),
         ylab = "Value", xlab = "Date", main = "LASSO - Observed vs Forecast")
 
-message("Elastic Net")
+
+
 # Elastic net model
+message("Elastic Net")
+
 enet_model <- call_models(dataset, 'Enet', get_elasticnet, "pib_rs")
 # h=1 RMSE: 0.05440103; MAE: 0.05253469   
 # h=4 RMSE: 0.04112094; MAE: 0.03919072 
 
-message("Random Forest")
+eneth1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = enet_model$forecasts[,1])
+eneth4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = enet_model$forecasts[,2])
+
+# Checking series untransformed (back to original)
+
+z_orig  <- eneth1$original
+z_pred  <- eneth1$predito
+log_recon_orig <- log_y0 + cumsum(z_orig)
+log_recon_pred <- log_y0 + cumsum(z_pred)
+y_recon_orig <- exp(log_recon_orig)
+y_recon_pred <- exp(log_recon_pred)
+eneth1$orig_recon  <- y_recon_orig
+eneth1$pred_recon  <- y_recon_pred
+matplot(eneth1$date, eneth1[, c("orig_recon", "pred_recon")], 
+        type = "l", lty = 1, lwd = 2, col = c("black","red"),
+        ylab = "Value", xlab = "Date", main = "Elastic Net - Observed vs Forecast")
+
+
 # Random Forest model
+message("Random Forest")
+
 #rf_model1 <- call_models(df, 'RandomForestOOB', get_rforest, "y")
 #rf_model2 <- call_models(df, 'RandomForestCV', get_rf, "y")
 

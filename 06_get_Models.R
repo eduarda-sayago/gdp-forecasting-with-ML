@@ -178,7 +178,52 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
     type = "coefficients",
     s = cv_lasso$lambda.min)[1:41,]
   
-  print(lasso.coef[lasso.coef != 0])
+  coef_mat <- as.matrix(lasso.coef)                     # ensure it's a matrix
+  coef_vals <- as.numeric(coef_mat)                     # numeric values
+  coef_names <- rownames(coef_mat)                      # names (intercept + features)
+  
+  nonzero <- which(coef_vals != 0)
+  
+  # window identifier (keeps track of which rolling window produced it)
+  window_id <- paste0("ind_", min(ind), "_to_", max(ind))
+  
+  if (length(nonzero) > 0) {
+    df_coefs <- data.frame(
+      window = window_id,
+      name   = coef_names[nonzero],
+      coef   = coef_vals[nonzero],
+      stringsAsFactors = FALSE
+    )
+  } else {
+    df_coefs <- data.frame(
+      window = window_id,
+      name   = NA_character_,
+      coef   = NA_real_,
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  # store in a global R object (list) so each call appends
+  if (!exists("lasso_coefs_history", envir = .GlobalEnv)) {
+    assign("lasso_coefs_history", list(), envir = .GlobalEnv)
+  }
+  hist_list <- get("lasso_coefs_history", envir = .GlobalEnv)
+  hist_list[[length(hist_list) + 1]] <- df_coefs
+  assign("lasso_coefs_history", hist_list, envir = .GlobalEnv)
+  
+  # also append to CSV so you can open it later without R running
+  fn <- "lasso_coefs_history.csv"
+  write.table(
+    df_coefs,
+    file = fn,
+    sep = ",",
+    row.names = FALSE,
+    col.names = !file.exists(fn),
+    append = TRUE
+  )
+  
+  # (optional) still print a short summary to console:
+  message("Saved ", nrow(df_coefs), " nonzero coef(s) for window ", window_id)
   
   #PREVISAO
   opt_lasso = predict(
@@ -255,10 +300,62 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
   )
   
   # Assuming 'cv_enet' is your trained model object
-  best_lambda <- cv_enet$finalModel$lambdaOpt %>% print()
-  best_alpha <- cv_enet$finalModel$tuneValue[1] %>% as.numeric() %>% print()
+  # best_lambda <- cv_enet$finalModel$lambdaOpt %>% print()
+  # best_alpha <- cv_enet$finalModel$tuneValue[1] %>% as.numeric() %>% print()
+  best_lambda <- cv_enet$finalModel$lambdaOpt
+  best_alpha  <- as.numeric(cv_enet$finalModel$tuneValue[1])
   opt_enet <- coef(cv_enet$finalModel, cv_enet$finalModel$lambdaOpt)
   
+  #---
+  coef_mat <- as.matrix(opt_enet)
+  coef_vals <- as.numeric(coef_mat)
+  coef_names <- rownames(coef_mat)
+  nonzero <- which(coef_vals != 0)
+  
+  # identifier for the rolling window
+  window_id <- paste0("ind_", min(ind), "_to_", max(ind))
+  
+  if (length(nonzero) > 0) {
+    df_coefs <- data.frame(
+      window = window_id,
+      name   = coef_names[nonzero],
+      coef   = coef_vals[nonzero],
+      alpha  = best_alpha,
+      lambda = best_lambda,
+      stringsAsFactors = FALSE
+    )
+  } else {
+    df_coefs <- data.frame(
+      window = window_id,
+      name   = NA_character_,
+      coef   = NA_real_,
+      alpha  = best_alpha,
+      lambda = best_lambda,
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  # store in a global list so each call appends (no change to function signature)
+  if (!exists("elasticnet_coefs_history", envir = .GlobalEnv)) {
+    assign("elasticnet_coefs_history", list(), envir = .GlobalEnv)
+  }
+  hist_list <- get("elasticnet_coefs_history", envir = .GlobalEnv)
+  hist_list[[length(hist_list) + 1]] <- df_coefs
+  assign("elasticnet_coefs_history", hist_list, envir = .GlobalEnv)
+  
+  # also append to CSV for persistence
+  fn <- "elasticnet_coefs_history.csv"
+  write.table(
+    df_coefs,
+    file = fn,
+    sep = ",",
+    row.names = FALSE,
+    col.names = !file.exists(fn),
+    append = TRUE
+  )
+  
+  message("Saved ", nrow(df_coefs), " coeff row(s) for window ", window_id)
+  #---
   x <- rep(0, ncol(x_in) + 1)
   x[opt_enet@i + 1] <- opt_enet@x
   names(x) <- c("cte", colnames(x_in))
