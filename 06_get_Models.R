@@ -1,6 +1,6 @@
 
 # ================================================
-# --------------ERRO QUADRATICO MEDIO-------------
+# ------------ROOT MEAN SQUARED ERROR-------------
 # ================================================
 
 f_rmse = function(x, y){
@@ -41,7 +41,28 @@ f_mae = function(x, y){
 }
 
 # ================================================
-# ------------------MEAN MODEL--------------------
+# ---------MEAN ABSOLUTE PERCENTAGE ERROR---------
+# ================================================
+
+f_mape = function(x, y){
+  
+  #' Cálculo do Erro Percentual Médio Absoluto (MAPE)
+  #'
+  #' Esta função calcula o erro percentual médio absoluto entre duas séries de valores.
+  #'
+  #' @param x Um vetor de valores previstos.
+  #' @param y Um vetor de valores reais.
+  #' @return O valor do erro percentual médio absoluto (em %).
+  #'
+  #' @examples
+  #' f_mape(c(2, 3, 5), c(1, 2, 6)) # Retorna o MAPE entre os vetores
+  #'
+  
+  mean(abs((y - x) / y)) * 100
+}
+
+# ================================================
+# ---------------MEAN MODEL (test)----------------
 # ================================================
 
 get_mean = function(ind, df, variable, horizon, n_lags){
@@ -97,12 +118,13 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
   
   #INICIANDO AS VARIAVEIS
   y_in = data_in$y_in
+  as.ts(y_in, frequency = 4)
   
   reg_arima = auto.arima(
     y = y_in, 
     stepwise = F, 
     approximation = F, 
-    stationary = F,
+    stationary = T,
     seasonal = T,
     start.p = 0,
     start.q = 0)
@@ -236,8 +258,6 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
   return(results)
   
 }
-
-
 
 # ================================================
 # ---------------ELASTIC NET MODEL----------------
@@ -386,63 +406,6 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
 # --------------RANDOM FOREST MODEL---------------
 # ================================================
 
-# with oob
-get_rforest <- function(ind, df, variable, horizon, n_lags) {
-  
-  library(randomForest)
-  library(forecast)
-  set.seed(100)
-
-  # Data preparation
-  data_in <- dataprep(
-    type = "default",
-    ind = ind,
-    df = df,
-    variable = variable,
-    horizon = horizon,
-    n_lags = n_lags
-  )
-  
-  y_in <- as.numeric(data_in$y_in)
-  x_in <- as.data.frame(data_in$x_in)
-  x_out <- as.data.frame(data_in$x_out)
-  
-  x_out <- x_out[, colnames(x_in), drop = FALSE]
-  
-  
-  # Tune mtry using OOB error
-  p <- ncol(x_in)
-  mtry_grid <- unique(pmax(1, c(1L, floor(sqrt(p)), floor(p/3), floor(p/2), p)))
-  
-  rf_list <- lapply(mtry_grid, function(m) {
-    model <- randomForest(
-      x = x_in,
-      y = y_in,
-      mtry = m,
-      ntree = 500,
-      nodesize = 5
-    )
-    
-    list(model = model, oob_error = model$mse[500])
-  })
-  
-  # Pick the best model
-  best <- rf_list[[which.min(sapply(rf_list, function(x) x$oob_error))]]
-  rf_opt <- best$model
-  
-  # Forecast
-  rf_forecast <- predict(rf_opt, newdata = x_out)
-  
-  return(list(
-    forecast = rf_forecast,
-    outputs = list(
-      rf_opt = rf_opt,
-      best_mtry = rf_opt$mtry
-    )
-  ))
-}
-
-#with k-fold cross-validation (caret)
 get_rf <- function(ind, df, variable, horizon, n_lags) {
   
   #' Ajuste de Modelo de Random Forest
@@ -476,7 +439,13 @@ get_rf <- function(ind, df, variable, horizon, n_lags) {
   x_in <- as.data.frame(data_in$x_in)
   x_out <- as.data.frame(data_in$x_out)
   
-  x_out <- x_out[, colnames(x_in), drop = FALSE]
+  # Ensure x_out has the same column names as x_in
+  if (ncol(x_out) == ncol(x_in)) {
+    colnames(x_out) <- colnames(x_in)
+  } else {
+    x_out <- as.data.frame(t(x_out))
+    colnames(x_out) <- colnames(x_in)
+  }
   
   # CV setup
   set.seed(100)
@@ -486,7 +455,6 @@ get_rf <- function(ind, df, variable, horizon, n_lags) {
   grid <- expand.grid(
     mtry = unique(pmax(1, c(1L, floor(sqrt(p)), floor(p/3), floor(p/2), p)))
   )
-  
   
   # Ajuste do modelo com CV
   rf_cv <- train(
