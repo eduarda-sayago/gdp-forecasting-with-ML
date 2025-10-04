@@ -99,22 +99,6 @@ message("[6/7] Checking stationarity (ADF ndiffs) on merged dataset...")
 test <- get_stationarity(dataset)
 rm(list = c("test"))
 
-# ================================================
-# --------------Test data handling----------------
-# ================================================
-
-# df <- readRDS("df_test.rds")
-# 
-# n_obs <- nrow(df)
-# dummies <- data.frame(matrix(ncol = 0, nrow = n_obs))
-# dummies$quarter <- lubridate::quarter(df$date)
-# df$Q2 <- ifelse(dummies$quarter == 2, 1, 0)
-# 
-# 
-# datest = df$date
-# df$date <- NULL
-# df[] <- lapply(df, as.numeric)
-
 
 # ================================================
 # -----------------Forecasting--------------------
@@ -134,6 +118,16 @@ message("SARIMA")
 benchmark <- call_models(dataset, 'SARIMA', get_sarima, "pib_rs")
 # h=1 RMSE: 0.07011117; MAE: 0.04844195  
 # h=4 RMSE: 0.12220252; MAE: 0.10155142 
+
+bench_newRW <- call_models1(dataset, 'SARIMA, rw v2', get_sarima, "pib_rs")
+# h=1 RMSE: 0.06241586; MAE: 0.04927159   
+# h=4 RMSE: 0.09227566; MAE: 0.07343951 
+
+bench_EW <- call_models2(dataset, 'SARIMA, exp windows', get_sarima, "pib_rs")
+# h=1 RMSE: 0.05676431; MAE: 0.04388974  
+# h=4 RMSE: 0.09914822; MAE: 0.07931631 
+
+
 #sarima_lag4 <- call_models(dataset, 'Sarima (lag 4)', get_sarima, "pib_4rs")
 #sarima_test <- call_models(df, 'Sarima (test)', get_sarima, "y")
 #      init            
@@ -293,8 +287,6 @@ legend("topleft",
        legend = c("Lasso", "Elastic Net", "Random Forest", "Boosting"), 
        col = c("orange", "red", "blue", "green"),
        lty = 1, lwd = 2)
-
-
 
 CSFE <- cbind(csfe_lasso, csfe_enet, csfe_rf, csfe_boosting)
 
