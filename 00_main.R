@@ -158,6 +158,8 @@ message("LASSO")
 lasso_model <- call_models(dataset, 'LASSO', get_lasso, "pib_rs")
 # h=1 RMSE: 0.05619033; MAE: 0.03669128
 # h=4 RMSE: 0.06089886; MAE: 0.04466303
+
+
 #lasso_test <- call_models(df, 'Lasso test', get_lasso, "y")
 #lasso_lag4 <- call_models(dataset, 'Lasso (lag 4)', get_lasso, "pib_4rs")
 # h=1 RMSE: 0.07374951; MAE: 0.07378580   
