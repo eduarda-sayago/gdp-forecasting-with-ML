@@ -152,6 +152,19 @@ message("LASSO")
 lasso_model <- call_models(dataset, 'LASSO', get_lasso, "pib_rs")
 # h=1 RMSE: 0.05619033; MAE: 0.03669128
 # h=4 RMSE: 0.06089886; MAE: 0.04466303
+
+# h=1 RMSE: 0.05920526 ; MAE: 0.04084625 
+# h=4 RMSE: 0.05988952 ; MAE: 0.04352576 
+
+lasso_newRW <- call_models1(dataset, 'LASSO - new RW', get_lasso, "pib_rs")
+#New rolling window fun
+# h=1 RMSE: 0.05920526 ; MAE: 0.04084625 
+# h=4 RMSE: 0.05988952 ; MAE: 0.04352576 
+
+lasso_EW <- call_models2(dataset, 'LASSO - exp window', get_lasso, "pib_rs")
+# h=1 RMSE: 0.06236464 ; MAE: 0.04644485
+# h=4 RMSE: 0.09339265 ; MAE: 0.07607445 
+
 #lasso_test <- call_models(df, 'Lasso test', get_lasso, "y")
 #lasso_lag4 <- call_models(dataset, 'Lasso (lag 4)', get_lasso, "pib_4rs")
 # h=1 RMSE: 0.07374951; MAE: 0.07378580   
@@ -180,6 +193,18 @@ message("Elastic Net")
 enet_model <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs")
 # h=1 RMSE: 0.05440103; MAE: 0.04112094   
 # h=4 RMSE: 0.05253469; MAE: 0.03919072 
+
+#New rolling window
+enet_model <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs")
+# h=1 RMSE: 0.05440103; MAE: 0.04112094   
+# h=4 RMSE: 0.05253469; MAE: 0.03919072 
+
+enet_model <- call_models1(dataset, 'Elastic Net - new RW', get_elasticnet, "pib_rs")
+
+
+enet_model <- call_models2(dataset, 'Elastic Net - exp window', get_elasticnet, "pib_rs")
+
+
 #enet_lag4 <- call_models(dataset, 'Enet (lag 4)', get_elasticnet, "pib_4rs")
 # h=1 RMSE: 0.09107647; MAE: 0.09321438   
 # h=4 RMSE: 0.06474050; MAE: 0.06422705 
