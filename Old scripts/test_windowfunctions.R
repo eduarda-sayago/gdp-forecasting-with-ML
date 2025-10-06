@@ -1,7 +1,3 @@
-# 1) Corrected rolling_window (minimal & robust)
-
-# 2) Expanding window (the minimal-expanding version you asked for earlier)
-
 # 3) A tiny test function that is easy to verify:
 #    - it returns the sum of the variable in the window as "forecast"
 #    - it returns the indices in outputs so we can inspect them
