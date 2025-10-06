@@ -29,7 +29,6 @@ message("[1/7] Loading data...")
 data_m <- readRDS("Data/base_NSA.rds")
 data_q <- read.csv2("Data/quarterly_NSA.csv")
 
-
 #Transform date column, remove empty rows
 data_q$date <- as.Date(data_q$date)
 data_m <- data_m[-((nrow(data_m)-1):nrow(data_m)), ]
@@ -119,6 +118,10 @@ benchmark <- call_models(dataset, 'SARIMA', get_sarima, "pib_rs")
 # h=1 RMSE: 0.07011117; MAE: 0.04844195  
 # h=4 RMSE: 0.12220252; MAE: 0.10155142 
 
+benchmark <- call_models(dataset, 'SARIMA', get_sarima2, "pib_rs")
+# h=1 RMSE: 0.07975306   ; MAE: 0.06596663     
+# h=4 RMSE: 0.08812035   ; MAE: 0.06574480  (1,0,0)(0,0,0)  
+
 bench_newRW <- call_models1(dataset, 'SARIMA, rw v2', get_sarima, "pib_rs")
 # h=1 RMSE: 0.06241586; MAE: 0.04927159   
 # h=4 RMSE: 0.09227566; MAE: 0.07343951 
@@ -127,6 +130,9 @@ bench_EW <- call_models2(dataset, 'SARIMA, exp windows', get_sarima, "pib_rs")
 # h=1 RMSE: 0.05676431; MAE: 0.04388974  
 # h=4 RMSE: 0.09914822; MAE: 0.07931631 
 
+bench_EW2 <- call_models3(dataset, 'SARIMA, exp windows2', get_sarima, "pib_rs")
+# h=1 RMSE: 0.06844638 ; MAE: 0.04777566    
+# h=4 RMSE: 0.12252206 ; MAE: 0.10172390 
 
 #sarima_lag4 <- call_models(dataset, 'Sarima (lag 4)', get_sarima, "pib_4rs")
 #sarima_test <- call_models(df, 'Sarima (test)', get_sarima, "y")
@@ -153,17 +159,22 @@ lasso_model <- call_models(dataset, 'LASSO', get_lasso, "pib_rs")
 # h=1 RMSE: 0.05619033; MAE: 0.03669128
 # h=4 RMSE: 0.06089886; MAE: 0.04466303
 
-# h=1 RMSE: 0.05920526 ; MAE: 0.04084625 
-# h=4 RMSE: 0.05988952 ; MAE: 0.04352576 
+lasso_model2 <- call_models12(dataset, 'LASSO - another rw', get_lasso, "pib_rs")
+# h=1 RMSE: 0.05619033; MAE: 0.03669128
+# h=4 RMSE: 0.06089886; MAE: 0.04466303
 
 lasso_newRW <- call_models1(dataset, 'LASSO - new RW', get_lasso, "pib_rs")
 #New rolling window fun
-# h=1 RMSE: 0.05920526 ; MAE: 0.04084625 
-# h=4 RMSE: 0.05988952 ; MAE: 0.04352576 
+# h=1 RMSE: 0.07065164 ; MAE: 0.05618992  
+# h=4 RMSE: 0.09514659 ; MAE: 0.07823913  
 
 lasso_EW <- call_models2(dataset, 'LASSO - exp window', get_lasso, "pib_rs")
-# h=1 RMSE: 0.06236464 ; MAE: 0.04644485
-# h=4 RMSE: 0.09339265 ; MAE: 0.07607445 
+# h=1 RMSE: 0.06789009  ; MAE: 0.05446227 
+# h=4 RMSE: 0.09052125  ; MAE: 0.07265229  
+
+lasso_EW2 <- call_models3(dataset, 'LASSO - exp window2', get_lasso, "pib_rs")
+# h=1 RMSE: 0.06226111   ; MAE: 0.04269089  
+# h=4 RMSE: 0.06449021   ; MAE: 0.04790714 
 
 #lasso_test <- call_models(df, 'Lasso test', get_lasso, "y")
 #lasso_lag4 <- call_models(dataset, 'Lasso (lag 4)', get_lasso, "pib_4rs")
@@ -195,7 +206,7 @@ enet_model <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs")
 # h=4 RMSE: 0.05253469; MAE: 0.03919072 
 
 #New rolling window
-enet_model <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs")
+enet_model <- call_models1(dataset, 'Elastic Net - new RW', get_elasticnet, "pib_rs")
 # h=1 RMSE: 0.05440103; MAE: 0.04112094   
 # h=4 RMSE: 0.05253469; MAE: 0.03919072 
 
@@ -243,8 +254,8 @@ rf_model <- call_models(dataset, 'Random Forest', get_rf, "pib_rs")
 message("Boosting")
 
 boosting_model <- call_models(dataset, 'Boosting', get_boosting, "pib_rs")
-# h=1 RMSE: 0.06830073; MAE: 0.04337962     
-# h=4 RMSE: 0.06144478; MAE: 0.04469730  
+# h=1 RMSE: 0.05718182 ; MAE: 0.03720618      
+# h=4 RMSE: 0.06833421 ; MAE: 0.05230112   
 
 #=====
 # sarimah1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,1])

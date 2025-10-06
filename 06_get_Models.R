@@ -143,6 +143,56 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
   
 }
 
+get_sarima2 = function(ind, df, variable, horizon, n_lags){
+  
+  #' Ajuste de Modelo SARIMA
+  #'
+  #' Esta função ajusta um modelo SARIMA aos dados fornecidos e gera previsões.
+  #'
+  #' @param ind Índices das observações a serem utilizadas.
+  #' @param df Um data.frame contendo os dados.
+  #' @param variable Nome da variável dependente a ser modelada.
+  #' @param horizon Horizonte de previsão.
+  #' @param n_lags Número de defasagens a serem usadas na modelagem.
+  #' @return Uma lista contendo as previsões do modelo SARIMA.
+  #'
+  #' @examples
+  #' results <- get_sarima(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
+  
+  
+  library(tidyverse)
+  library(forecast)
+  
+  data_in = dataprep(
+    ind = ind,
+    df = df,
+    variable = variable,
+    horizon = horizon,
+    n_lags = n_lags)
+  
+  #INICIANDO AS VARIAVEIS
+  y_in = data_in$y_in
+  as.ts(y_in, frequency = 4)
+  
+  reg_arima = arima(
+    x = y_in,
+    order = c(1,0,0),
+    seasonal = list(order=c(0,0,0),period=4))
+  
+  print(reg_arima)
+  
+  for_arima_aux = forecast(
+    object = reg_arima, 
+    h = horizon)
+  
+  forecasts = for_arima_aux$mean
+  
+  results = list(forecasts = forecasts)
+  
+  return (results)
+  
+}
+
 # ================================================
 # ------------------LASSO MODEL-------------------
 # ================================================
