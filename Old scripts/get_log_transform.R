@@ -4,7 +4,7 @@ get_log_transform <- function(dataset) {
   #' Detecta o tipo de cada variável e aplica transformação inicial, seguindo a regra:
   #'
   #' 0: estritamente positiva → log
-  #' 1: contém negativos → sem transformação
+  #' 1: contém negativos → não transforma
   #' 2: contém zeros → log(X + 2)
   #' 3: zeros e negativos → shift +1
   #' 4: coluna de data → não transforma

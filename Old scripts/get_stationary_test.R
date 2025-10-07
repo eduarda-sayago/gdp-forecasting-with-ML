@@ -4,7 +4,7 @@ library(textdata)
 library(lubridate)
 library(sentometrics)
 
-get_stationarity = function(dataset){
+get_stationar = function(dataset){
   
   #' Stationarity Test with the ADF Test
   #'
