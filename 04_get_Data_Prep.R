@@ -101,6 +101,10 @@ dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4, dum_c
   return(list(x_in = x_in, x_out = x_out, y_in = y_in))
 }
 
+df <- data.frame(data = 1:100, variable = rnorm(100), variable2 = rnorm(100))
+result <- dataprep(type = 'tb', ind = 1:80, df = df, variable = 'variable', horizon = 1, n_lags = 4)
+
+
 # library(forecast)
 # y = data_q$pib_rs
 # #acf(y)
