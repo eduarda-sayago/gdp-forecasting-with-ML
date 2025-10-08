@@ -28,15 +28,67 @@ rolling_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
     indmat[i, ] <- indmat[i - 1, ] + 1
   }
   
+  
   rw <- apply(
     X = indmat,
-    MARGIN = 2,
+    MARGIN = 2, # it actually is = 2.
     FUN = fn,
     df = df,
     horizon = horizon,
     variable = variable,
     ...
   )
+  forecast <- unlist(lapply(rw, function(x) x$forecast))
+  outputs <- lapply(rw, function(x) x$outputs)
+  return(list(forecast = forecast, outputs = outputs))
+}
+
+rolling_window2 <- function(fn, df, nwindow = 1, horizon, variable, ...) {
+  
+  #' Janela Movel para Modelagem
+  #'
+  #' Esta função aplica uma função especificada a uma janela deslizante de dados em um `data.frame` para realizar previsões.
+  #'
+  #' @param fn A função a ser aplicada em cada janela deslizante. Esta função deve retornar um objeto com as previsões e saídas.
+  #' @param df Um `data.frame` contendo os dados a serem processados.
+  #' @param nwindow O tamanho da janela deslizante. O padrão é 1.
+  #' @param horizon O horizonte de previsão, que determina quantas observações devem ser projetadas para frente.
+  #' @param variable O nome da variável dependente a ser utilizada na análise.
+  #' @param ... Argumentos adicionais a serem passados para a função `fn`.
+  #' @return Uma lista com dois elementos:
+  #' - forecast: Um vetor com as previsões resultantes de cada aplicação da função nas janelas deslizantes.
+  #' - outputs: Uma lista contendo as saídas resultantes de cada aplicação da função nas janelas deslizantes.
+  #'
+  #' @examples
+  #' df <- data.frame(data = 1:100, variable = rnorm(100))
+  #' result <- rolling_window(fn = my_forecast_function, df = df, nwindow = 5, horizon = 1, variable = 'variable')
+  #'
+  #' @export
+  
+  n <- nrow(df)
+  w <- nwindow            # w == n - b + 1
+  h <- horizon
+  
+  s <- w - h
+  b <- n - w + 1
+
+  # index matrix must be (s x b) and iterates through each column
+  indmat <- matrix(NA, s, b)
+  indmat[1, ] <- seq_len(b) # (first row is filled with numbers from 1 to b)
+  for (r in 2:nrow(indmat)) indmat[r, ] <- indmat[r - 1, ] + 1 # from row 2:s, row before +1
+  
+  rw <- apply(
+    X = indmat,
+    MARGIN = 2, # iterates through columns.
+    FUN = fn,
+    df = df,
+    horizon = horizon,
+    variable = variable,
+    ...
+  )
+  
+  # print(rw)
+  # View(rw)
   forecast <- unlist(lapply(rw, function(x) x$forecast))
   outputs <- lapply(rw, function(x) x$outputs)
   return(list(forecast = forecast, outputs = outputs))

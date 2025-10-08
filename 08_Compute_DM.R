@@ -37,12 +37,12 @@ compute_dm = function(){
   #' dm_results <- compute_dm()
   
   model_names <- c("LASSO", "Elastic Net", "Random Forest", "Boosting")
-  horizons <- c(1, 4)
+  horizons <- c(1, 3, 6, 12)
   
   ##################################################
   ############## DM FOR TEXT BASE ##################
   ##################################################
-  model_dataframes <- list(lasso_model, enet_model, rf_model, boosting_model)
+  model_dataframes <- list(lasso_mmodel, lasso_wmodel)
   pvalues <- matrix(nrow = length(model_names), ncol = length(horizons))
   results <- list()
   
@@ -61,8 +61,8 @@ compute_dm = function(){
       
       #residual = y - ŷ
       dm = dm.test(
-        e1 = dataset$`pib_rs`[65:92] - y,
-        e2 = dataset$`pib_rs`[65:92] - x,
+        e1 = datasetm$`ibc_rs`[181:257] - y,
+        e2 = datasetm$`ibc_rs`[181:257] - x,
         h = h,
         alternative = 'two.sided',
         varestimator = 'bartlett'

@@ -38,8 +38,10 @@ csfe = function(model, benchmark, y_real){
   #'
   
   h1 = f_csfe(model$forecast[,1], benchmark$forecasts[,1], y_real = y_real)
-  h4 = f_csfe(model$forecast[,2], benchmark$forecasts[,2], y_real = y_real)
+  h3 = f_csfe(model$forecast[,2], benchmark$forecasts[,2], y_real = y_real)
+  h6 = f_csfe(model$forecast[,3], benchmark$forecasts[,3], y_real = y_real)
+  h12 = f_csfe(model$forecast[,4], benchmark$forecasts[,4], y_real = y_real)
   
-  cbind(h1, h4)
+  cbind(h1, h3, h6, h12)
   
 }
