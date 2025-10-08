@@ -30,7 +30,7 @@ call_models = function(data, model_name, model_function, variable, type = "defau
   y_out <- tail(data[, variable], b)
   
   model_list <- list()
-  for_ind <- c(1, 4)
+  for_ind <- c(1, 3, 6, 12)
   
   for (i in for_ind) {
     model <- rolling_window2(
