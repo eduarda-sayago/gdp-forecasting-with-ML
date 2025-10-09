@@ -1,72 +1,64 @@
-#### Gather monthly data
+# ================================================
+# ------------Gather Monthly Data-----------------
+# ================================================
 
-
-# Packages
-library(dplyr)
-library(readr)
-library(lubridate)
-library(tidyr)
-
-
-# Raw data
-nacional <- read.csv("Data/data_NSA/nacional_mensal.csv")
-regional <- read.csv("Data/data_NSA/regional_mensal.csv")
-meteorologicos <- read.csv("Data/data_NSA/meteorologicos_mensal.csv")
-ipea <- read.csv("Data/data_NSA/dadosipeaNSA.csv")
-
-nacional = nacional[-1,-1]
-meteorologicos = meteorologicos[-1:-12,-1:-2]
-regional = regional[-1,-1]
-ipea = ipea[-283:-284,-1]
-
-nacional = nacional[-283,] 
-regional = regional[-283,]
-
-# ALL THE 
-
-
-# base_NSA = cbind(ipea,
-#                  nacional,
-#                  meteorologicos,
-#                  regional)
-
-#base_NSA[,1] <- as.Date(base_NSA[,1])
-#base_NSA <- base_NSA %>% arrange(base_NSA[,1])
-
-#saveRDS(base_NSA, "base_NSA.rds")
-#rm(list = setdiff(ls(), c("base_NSA")))
-
-# base_NSA with no meteorologicos
-
-base_noweather = cbind(ipea,nacional, regional)
-
-base_noweather[,1] <- as.Date(base_noweather[,1])
-base_noweather <- base_noweather %>% arrange(base_noweather[,1])
-
-saveRDS(base_noweather, "base_noweather.rds")
-
-#rm(list = setdiff(ls(), c("base_NSA")))
-
-# Raw data w/ Seasonal adjustment (if available)
-
-# nacional_SA <- read.csv2("Data/data_SA/nacional_mensal.csv")
-# regional_SA <- read.csv2("Data/data_SA/regional_mensal.csv")
-# meteorologicos <- read.csv("Data/data_SA/meteorologicos_mensal.csv")
-# ipea_SA <- read.csv("Data/data_SA/dadosipeaSA.csv")
+# library(dplyr)
+# library(lubridate)
 # 
-# nacional_SA = nacional_SA[-1,-1]
-# regional_SA = regional_SA[-1,-1]
-# ipea_SA = ipea_SA[-283:-284,-1]
+# nacional <- read.csv("Data/data_NSA/nacional_mensal.csv")
+# regional <- read.csv("Data/data_NSA/regional_mensal.csv")
+# meteorologicos <- read.csv("Data/data_NSA/meteorologicos_mensal.csv")
+# ipea <- read.csv("Data/data_NSA/dadosipeaNSA.csv")
 # 
-# nacional_SA = nacional_SA[-283,] 
-# regional_SA = regional_SA[-283,]
+# nacional = nacional[2:281, -(1:2)] #
+# regional = regional[2:281,-(1:2)] #
+# meteorologicos = meteorologicos[13:292, -(1:2)] #
+# ipea = ipea[1:280,-1]
 # 
-# base_SA = cbind(ipea_SA,
-#                 nacional_SA,
-#                 meteorologicos,
-#                 regional_SA)
+# raw_base = cbind(regional, nacional, meteorologicos, ipea)
+# raw_base <- raw_base %>% select(date, everything())
+# raw_base[,1] <- as.Date(raw_base[,1])
 # 
-# base_SA[,1] <- as.Date(base_SA[,1])
-# base_SA <- base_SA %>% arrange(base_SA[,1])
-# 
-# saveRDS(base_SA, "base_SA.rds")
+# saveRDS(raw_base, "raw_base.rds")
+
+get_raw_base <- function(rds_path = "raw_base.rds") {
+  # If RDS already exists, return it
+  if (file.exists(rds_path)) {
+    message("Loading RDS from disk")
+    raw_base <- readRDS(rds_path)
+    return(raw_base)
+  }
+  
+  # Otherwise, process the CSVs
+  message("Gathering RDS from CSV files...")
+  
+  # Load necessary libraries
+  library(dplyr)
+  library(lubridate)
+  
+  # Read CSV files
+  nacional <- read.csv("Data/data_NSA/nacional_mensal.csv")
+  regional <- read.csv("Data/data_NSA/regional_mensal.csv")
+  meteorologicos <- read.csv("Data/data_NSA/meteorologicos_mensal.csv")
+  ipea <- read.csv("Data/data_NSA/dadosipeaNSA.csv")
+  
+  # Apply transformations
+  nacional <- nacional[2:281, -(1:2)]
+  regional <- regional[2:281, -(1:2)]
+  meteorologicos <- meteorologicos[13:292, -(1:2)]
+  ipea <- ipea[1:280, -1]
+  
+  # Combine all data
+  raw_base <- cbind(regional, nacional, meteorologicos, ipea)
+  raw_base <- raw_base %>% select(date, everything())
+  raw_base[, 1] <- as.Date(raw_base[, 1])
+  
+  # Save the processed data
+  saveRDS(raw_base, rds_path)
+  message("RDS file created and saved as raw_base.rds")
+  
+  # Return the final data
+  return(raw_base)
+}
+
+rm(nacional, regional, meteorologicos,ipea)

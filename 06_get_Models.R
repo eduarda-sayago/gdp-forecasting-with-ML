@@ -16,7 +16,7 @@ f_rmse = function(x, y){
   #' @examples
   #' f_rmse(c(2, 3, 5), c(1, 2, 6)) # Retorna a RMSE entre os vetores
   
-  sqrt(mean((x - y)^2))
+  sqrt(mean((y - x)^2))
 }
 
 # ================================================
@@ -37,7 +37,7 @@ f_mae = function(x, y){
   #' f_mae(c(2, 3, 5), c(1, 2, 6)) # Retorna o MAE entre os vetores
   #'
   
-  mean(abs(x - y))
+  mean(abs(y - x))
 }
 
 # ================================================
@@ -136,8 +136,9 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
     h = horizon)
   
   forecasts = for_arima_aux$mean
+  forecast = tail(forecasts, 1)
   
-  results = list(forecasts = forecasts)
+  results = list(forecast = forecast)
   
   return (results)
   
@@ -183,6 +184,7 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
   x_in = data_in$x_in
   x_out = data_in$x_out
   
+  set.seed(100)
   #ESTIMANDO O MODELO
   cv_lasso = cv.glmnet(
     x = as.matrix(x_in),

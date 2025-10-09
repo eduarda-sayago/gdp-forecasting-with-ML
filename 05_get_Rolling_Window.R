@@ -42,7 +42,7 @@ rolling_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
   return(list(forecast = forecast, outputs = outputs))
 }
 
-rolling_windowv2 <- function(fn, df, nwindow = 1, horizon, variable, ...) {
+rolling_window2 <- function(fn, df, nwindow = 1, horizon, variable, ...) {
   
   #' Janela Movel para Modelagem
   #'
@@ -64,16 +64,21 @@ rolling_windowv2 <- function(fn, df, nwindow = 1, horizon, variable, ...) {
   #'
   #' @export
   
-  window_size <- nrow(df) - nwindow + 1
-  indmat <- matrix(NA, window_size, nwindow)
-  indmat[1, ] <- seq_len(ncol(indmat))
-  for (i in 2:nrow(indmat)) {
-    indmat[i, ] <- indmat[i - 1, ] + 1
-  }
+  n <- nrow(df)
+  w <- nwindow            # w == n - b + 1
+  h <- horizon
+  
+  s <- w - h
+  b <- n - w + 1
+  
+  # index matrix must be (s x b) and iterates through each column
+  indmat <- matrix(NA, s, b)
+  indmat[1, ] <- seq_len(b) # (first row is filled with numbers from 1 to b)
+  for (r in 2:nrow(indmat)) indmat[r, ] <- indmat[r - 1, ] + 1 # from row 2:s, row before +1
   
   rw <- apply(
     X = indmat,
-    MARGIN = 1,
+    MARGIN = 2, # iterates through columns.
     FUN = fn,
     df = df,
     horizon = horizon,
@@ -81,27 +86,8 @@ rolling_windowv2 <- function(fn, df, nwindow = 1, horizon, variable, ...) {
     ...
   )
   
-  forecast <- unlist(lapply(rw, function(x) x$forecast))
-  outputs <- lapply(rw, function(x) x$outputs)
-  return(list(forecast = forecast, outputs = outputs))
-}
-
-expanding_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
-  #' Janela Expansiva para Modelagem (expanding window)
-  #'
-  #' Versão mínima alterada para produzir janelas expansivas: cada janela começa
-  #' em 1 e cresce até o final, começando com tamanho `nwindow`.
-  
-  # número de janelas (inclui a janela final que termina em nrow(df))
-  window_size <- nrow(df) - nwindow + 1
-  if (window_size < 1) stop("nwindow is larger than number of rows in df")
-  
-  # lista de índices: 1:(nwindow), 1:(nwindow+1), ..., 1:(nrow(df))
-  indlist <- lapply(seq_len(window_size), function(i) seq_len(nwindow + i - 1))
-  
-  # aplica fn a cada janela (cada elemento de indlist é passado como primeiro arg)
-  rw <- lapply(indlist, function(idx) fn(idx, df = df, horizon = horizon, variable = variable, ...))
-  
+  # print(rw)
+  # View(rw)
   forecast <- unlist(lapply(rw, function(x) x$forecast))
   outputs <- lapply(rw, function(x) x$outputs)
   return(list(forecast = forecast, outputs = outputs))
