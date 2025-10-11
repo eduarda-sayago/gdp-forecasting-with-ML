@@ -131,7 +131,6 @@ call_models1 = function(data, model_name, model_function, variable, type = "defa
     x = lapply(model_list, function(x) head(x$forecast, b))
   ) %>% as.matrix()
   
-  
   for (i in for_ind) {
     filename <- paste0("forecast ",model_name,"-horizon-" , i, ".png")
     filepath <- file.path("Plots", filename)
@@ -146,11 +145,11 @@ call_models1 = function(data, model_name, model_function, variable, type = "defa
     dev.off()
   }
   
-  
   rmse <- apply(forecasts, 2, f_rmse, y = y_out) %>% print()
-  mae = apply(forecasts, 2, f_mae, y = y_out) %>% print()
+  mae <- apply(forecasts, 2, f_mae, y = y_out) %>% print()
+  mape <- apply(forecasts, 2, f_mape, y = y_out) %>% print()
   
-  results = list(mae = mae, rmse = rmse, forecasts = forecasts)
+  results = list(mae = mae, rmse = rmse, mape = mape, forecasts = forecasts)
   
   return(results)
 }

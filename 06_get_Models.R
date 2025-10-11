@@ -172,7 +172,6 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
   #PREPARANDO OS DADOS
   data_in = dataprep(
     type = 'default',
-    #type = 'tb',
     ind = ind,
     df = df,
     variable = variable,

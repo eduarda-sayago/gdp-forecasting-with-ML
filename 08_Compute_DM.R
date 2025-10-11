@@ -1,3 +1,5 @@
+library(forecast)
+
 add_stars <- function(pvalues, alpha_levels = c(0.05, 0.01, 0.001)) {
   
   #' Adiciona Estrelas para Indicar Níveis de Significância
@@ -36,13 +38,15 @@ compute_dm = function(){
   #' @examples
   #' dm_results <- compute_dm()
   
-  model_names <- c("LASSO", "Elastic Net", "Random Forest", "Boosting")
+  library(forecast)
+  
+  model_names <- c("LASSO", "Elastic Net", "Random Forest")
   horizons <- c(1, 4)
   
   ##################################################
   ############## DM FOR TEXT BASE ##################
   ##################################################
-  model_dataframes <- list(lasso_model, enet_model, rf_model, boosting_model)
+  model_dataframes <- list(lasso_model, enet_model, rf_model)
   pvalues <- matrix(nrow = length(model_names), ncol = length(horizons))
   results <- list()
   
@@ -101,13 +105,13 @@ compute_dmv2 = function(){
   #' @examples
   #' dm_results <- compute_dm()
   
-  model_names <- c("LASSO", "Elastic Net", "Random Forest", "Boosting")
+  model_names <- c("LASSO", "Elastic Net", "Random Forest")
   horizons <- c(1, 4)
   
   ##################################################
   ############## DM FOR TEXT BASE ##################
   ##################################################
-  model_dataframes <- list(lasso_model, enet_model, rf_model, boosting_model)
+  model_dataframes <- list(lasso_model, enet_model, rf_model)
   pvalues <- matrix(nrow = length(model_names), ncol = length(horizons))
   results <- list()
   

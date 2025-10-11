@@ -100,22 +100,3 @@ dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4, dum_c
   
   return(list(x_in = x_in, x_out = x_out, y_in = y_in))
 }
-
-# library(forecast)
-# y = data_q$pib_rs
-# #acf(y)
-# x = diff(log(y))
-# #pacf(x)
-# 
-# # reg <- auto.arima(x,
-# #                   max.p = 0,
-# #                   max.q = 0,
-# #                   seasonal = TRUE)
-# # 
-# # reg <- auto.arima(x,
-# #                   max.p = 0,
-# #                   max.q = 0,
-# #                   seasonal = TRUE,
-# #                   stationary = TRUE)
-# reg2 <- arima(x, order = c(0,0,0), seasonal = list(order = c(0,1,0), period = 4))
-# res2 <- reg2$residuals

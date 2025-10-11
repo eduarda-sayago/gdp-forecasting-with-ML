@@ -82,8 +82,9 @@ dataset$Q4 <- ifelse(dummies$quarter == 4, 1, 0)
 
 dataset$d_pandemic <- ifelse(dataset$date >= as.Date("2020-03-01") &
                              dataset$date <= as.Date("2020-06-01"), 1, 0)
-dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
-
+# dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
+dataset$d_shift <- ifelse(dataset$date < as.Date("2013-03-01"), 
+                          seq_len(sum(dataset$date < as.Date("2013-03-01"))),0)
 # ================================================
 # ------------------Checkpoint--------------------
 # ================================================
@@ -133,8 +134,8 @@ lasso_model <- call_models1(dataset, 'LASSO', get_lasso, "pib_rs")
 # h=1 RMSE: 0.05619033 ; MAE: 0.03669128; MAPE: 97.0483 
 # h=4 RMSE: 0.06089886 ; MAE: 0.04466303; MAPE: 101.9442 
 
-# h=1 RMSE: 0.05920526   ; MAE: 0.04084625   
-# h=4 RMSE: 0.05988952   ; MAE: 0.04352576
+# h=1 RMSE: 0.05630044    ; MAE: 0.03681486    
+# h=4 RMSE: 0.06074664    ; MAE: 0.04515107 
 
 #=====
 message("Elastic Net")
@@ -147,15 +148,17 @@ enet_model <- call_models1(dataset, 'Elastic Net', get_elasticnet, "pib_rs")
 message("Random Forest")
 
 rf_model <- call_models1(dataset, 'Random Forest', get_rf, "pib_rs")
-# h=1 RMSE: 0.05637370; MAE: 0.04002083; MAPE: 
-# h=4 RMSE: 0.05071925; MAE: 0.03560388; MAPE: 
+# h=1 RMSE: 0.05637370 ; MAE: 0.04002083 ; MAPE: 92.02282 
+# h=4 RMSE: 0.05071925 ; MAE: 0.03560388 ; MAPE: 84.35485 
+
+rf_model2 <- call_models1(dataset, 'Random Forest', get_rf_improved, "pib_rs")
 
 #=====
 message("Boosting")
 
 boosting_model <- call_models1(dataset, 'Boosting', get_boosting, "pib_rs")
-# h=1 RMSE: 0.06830073; MAE: 0.04337962; MAPE: 
-# h=4 RMSE: 0.06144478; MAE: 0.04469730; MAPE: 
+# h=1 RMSE: 0.05718182 ; MAE: 0.03720618 ; MAPE: 101.8835 
+# h=4 RMSE: 0.06833421 ; MAE: 0.05230112 ; MAPE: 118.3273 
 
 # ================================================
 # ---------Graphs with original series------------
@@ -215,12 +218,13 @@ boosting_model <- call_models1(dataset, 'Boosting', get_boosting, "pib_rs")
 #         type = "l", lty = 1, lwd = 2, col = c("black","red"),
 #         ylab = "Value", xlab = "Date", main = "Elastic Net - Observed vs Forecast")
 
+
 # ================================================
 # ---------------Diebold-Mariano test-------------
 # ================================================
 
 dm_tests = compute_dm()
-meandm_test = compute_dmv2()
+dm_test_mean = compute_dmv2()
 
 # ================================================
 # ------Performance evaluation through CSFE-------
@@ -229,12 +233,12 @@ meandm_test = compute_dmv2()
 csfe_lasso = csfe(lasso_model, benchmark, dataset$"pib_rs"[65:92])
 csfe_enet = csfe(enet_model, benchmark, dataset$"pib_rs"[65:92])
 csfe_rf = csfe(rf_model, benchmark, dataset$"pib_rs"[65:92])
-csfe_boosting = csfe(boosting_model, benchmark, dataset$"pib_rs"[65:92])
+#csfe_boosting = csfe(boosting_model, benchmark, dataset$"pib_rs"[65:92])
 
 csfe_lasso <- as.data.frame(csfe_lasso)
 csfe_enet <- as.data.frame(csfe_enet)
 csfe_rf <- as.data.frame(csfe_rf)
-csfe_boosting <- as.data.frame(csfe_boosting)
+#csfe_boosting <- as.data.frame(csfe_boosting)
 
 # Base R plotting
 plot(date[65:92], csfe_lasso$h1, type = "l", col = "orange", lwd = 2, ylim = c(-0.01, 0.056),
@@ -242,7 +246,7 @@ plot(date[65:92], csfe_lasso$h1, type = "l", col = "orange", lwd = 2, ylim = c(-
 
 lines(date[65:92], csfe_enet$h1, col = "red",   lwd = 2)
 lines(date[65:92], csfe_rf$h1,   col = "blue",  lwd = 2)
-lines(date[65:92], csfe_boosting$h1, col = "green", lwd = 2)
+#lines(date[65:92], csfe_boosting$h1, col = "green", lwd = 2)
 
 legend("topleft",
        legend = c("Lasso", "Elastic Net", "Random Forest", "Boosting"),
@@ -255,13 +259,13 @@ plot(date[65:92], csfe_lasso$h4, type = "l", col = "orange", lwd = 2, ylim = c(0
 
 lines(date[65:92], csfe_enet$h4, col = "red",   lwd = 2)
 lines(date[65:92], csfe_rf$h4,   col = "blue",  lwd = 2)
-lines(date[65:92], csfe_boosting$h4, col = "green", lwd = 2)
+#lines(date[65:92], csfe_boosting$h4, col = "green", lwd = 2)
 
 legend("topleft",
        legend = c("Lasso", "Elastic Net", "Random Forest", "Boosting"), 
        col = c("orange", "red", "blue", "green"),
        lty = 1, lwd = 2)
 
-CSFE <- cbind(csfe_lasso, csfe_enet, csfe_rf, csfe_boosting)
+#CSFE <- cbind(csfe_lasso, csfe_enet, csfe_rf, csfe_boosting)
 
 # ================================================
