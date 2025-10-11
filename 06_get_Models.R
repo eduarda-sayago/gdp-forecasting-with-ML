@@ -136,8 +136,9 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
     h = horizon)
   
   forecasts = for_arima_aux$mean
+  forecast = tail(forecasts, 1)
   
-  results = list(forecasts = forecasts)
+  results = list(forecast = forecast)
   
   return (results)
   

@@ -37,12 +37,10 @@ compute_dm = function(){
   #' dm_results <- compute_dm()
   
   model_names <- c("LASSO", "Elastic Net", "Random Forest", "Boosting")
-  horizons <- c(1, 3, 6, 12)
+  horizons <- c(1, 12)
   
-  ##################################################
-  ############## DM FOR TEXT BASE ##################
-  ##################################################
-  model_dataframes <- list(lasso_mmodel, lasso_wmodel)
+  
+  model_dataframes <- list(lasso_model, enet_model, rf_model, boost_model)
   pvalues <- matrix(nrow = length(model_names), ncol = length(horizons))
   results <- list()
   
@@ -107,7 +105,7 @@ compute_dmv2 = function(){
   ##################################################
   ############## DM FOR TEXT BASE ##################
   ##################################################
-  model_dataframes <- list(lasso_model, enet_model, rf_model, boosting_model)
+  model_dataframes <- list(lasso_model, enet_model, rf_model, boost_model)
   pvalues <- matrix(nrow = length(model_names), ncol = length(horizons))
   results <- list()
   
