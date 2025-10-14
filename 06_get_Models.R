@@ -118,7 +118,7 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
   
   #INICIANDO AS VARIAVEIS
   y_in = data_in$y_in
-  as.ts(y_in, frequency = 4)
+  as.ts(y_in, frequency = 12)
   
   reg_arima = auto.arima(
     y = y_in, 

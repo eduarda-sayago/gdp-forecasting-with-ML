@@ -140,6 +140,10 @@ benchmark <- call_models1(datasetm, 'SARIMA - IBC-m', get_sarima, "ibc_rs")
 # h=1 RMSE: 0.06629558; MAE: 0.04880438; MAPE: 1.048171 
 # h=12 RMSE: 0.09837429; MAE: 0.07007968; MAPE: 1.501778  
 
+benchmark2 <- call_models1(datasetm, 'SARIMA - IBC-m', get_sarima, "ibc_rs")
+# h=1 RMSE: 0.06629558 ; MAE: 0.04880438 ; MAPE: 1.048171  
+# h=12 RMSE: 0.09837429 ; MAE: 0.07007968 ; MAPE: 1.501778   
+
 #=====
 message("LASSO")
 
@@ -162,31 +166,31 @@ enet_modelp <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs")
 # h=1 RMSE: 0.05790124 ; MAE: 0.04586020; MAPE:    
 # h=4 RMSE: 0.12473872 ; MAE: 0.09587616; MAPE:
 enet_model <- call_models1(datasetm, 'Elastic Net', get_elasticnet, "ibc_rs")
-# h=1 RMSE: ; MAE:    ; MAPE:
-# h=4 RMSE: ; MAE:    ; MAPE:
+# h=1 RMSE: 0.05072413 ; MAE: 0.03893112; MAPE: 0.8390616 
+# h=12 RMSE: 0.06412265 ; MAE: 0.05130680; MAPE: 1.1120433 
 enet_wmodel <- call_models1(datasetw, 'Elastic Net', get_elasticnet, "ibc_rs")
 # h=1 RMSE: ; MAE:    ; MAPE:
-# h=4 RMSE: ; MAE:    ; MAPE:
+# h=12 RMSE: ; MAE:    ; MAPE:
 
 
 #=====
 message("Random Forest")
 
 rf_model <- call_models1(datasetm, 'Random Forest', get_rf, "ibc_rs")
-# h=1 RMSE: ; MAE:     
-# h=4 RMSE: ; MAE:  
+# h=1 RMSE: 0.05013537 ; MAE: 0.03508641; MAPE: 0.7569036 
+# h=12 RMSE: 0.05428087 ; MAE:0.04022022; MAPE: 0.8674320 
 rf_wmodel <- call_models1(datasetw, 'Random Forest', get_rf, "ibc_rs")
 # h=1 RMSE: ; MAE:     
 # h=4 RMSE: ; MAE:  
 
 message("Boosting")
 
-boost_model <- call_models1(datasetm, 'Boosting', get_boosting, "ibc_rs")
-# h=1 RMSE: ; MAE:      
-# h=4 RMSE: ; MAE:   
-boost_wmodel <- call_models1(datasetw, 'Boosting', get_boosting, "ibc_rs")
-# h=1 RMSE: ; MAE:      
-# h=4 RMSE: ; MAE:  
+# boost_model <- call_models1(datasetm, 'Boosting', get_boosting, "ibc_rs")
+# # h=1 RMSE: 0.1026092; MAE: 0.06800124 ; MAPE:  1.445637 
+# # h=12 RMSE:0.1002764; MAE: 0.06661304 ; MAPE:  1.417023  
+# boost_wmodel <- call_models1(datasetw, 'Boosting', get_boosting, "ibc_rs")
+# # h=1 RMSE: ; MAE:      
+# # h=4 RMSE: ; MAE:  
 
 # ================================================
 # ----------Graphs with original series-----------
@@ -250,53 +254,64 @@ boost_wmodel <- call_models1(datasetw, 'Boosting', get_boosting, "ibc_rs")
 # ---------------Diebold-Mariano test-------------
 # ================================================
 
-dm_tests = compute_dm()
+y <- datasetm$`ibc_rs`[181:257]
+dm_tests_ibc <- compute_dm(model_names = c("LASSO", "Elastic Net", "Random Forest"),
+                           model_dataframes = list(lasso_model, enet_model, rf_model),
+                           horizons = c(1, 12),
+                           orig_data = y)
+
 meandm_test = compute_dmv2()
 
 # ================================================
 # ------Performance evaluation through CSFE-------
 # ================================================
 
-csfem_lassom = csfe(lasso_mmodel, benchmarkm, datasetm$"ibc_rs"[181:257])
-csfem_lassow = csfe(lasso_wmodel, benchmarkm, datasetm$"ibc_rs"[181:257])
+csfem_lasso = csfe(lasso_model, benchmark, y)
+csfem_enet = csfe(enet_model, benchmark, y)
+csfem_rf = csfe(rf_model, benchmark, y)
+#csfem_boosting = csfe(boost_model, benchmark, y)
 
-csfem_enet = csfe(enet_model, benchmark, datasetm$"ibc_rs"[181:257])
-csfem_rf = csfe(rf_model, benchmark, datasetm$"ibc_rs"[181:257])
-csfem_boosting = csfe(boosting_model, benchmark, datasetm$"ibc_rs"[181:257])
+csfem_lasso <- as.data.frame(csfem_lasso)
+csfem_enet <- as.data.frame(csfem_enet)
+csfem_rf <- as.data.frame(csfem_rf)
+#csfem_boosting <- as.data.frame(csfem_boosting)
 
-csfem_lassom <- as.data.frame(csfem_lassom)
-csfem_lassow <- as.data.frame(csfem_lassow)
+# ================================================
+# --------------------Graphs----------------------
+# ================================================
+y_axis <- dfdate[181:257]
+CSFE_df <- data.frame(date = y_axis,
+                      lasso_h1 = csfem_lasso$h1,
+                      lasso_h12 = csfem_lasso$h12,
+                      enet_h1 = csfem_enet$h1,
+                      enet_h12 = csfem_enet$h12,
+                      rf_h1 = csfem_rf$h1,
+                      rf_h12 = csfem_rf$h12) 
 
-csfem_enet <- as.data.frame(csfe_enet)
-csfem_rf <- as.data.frame(csfe_rf)
-csfem_boosting <- as.data.frame(csfe_boosting)
-
-# Base R plotting
-plot(dfdate[181:257], csfem_lassom$h1, type = "l", col = "orange", lwd = 2, ylim = c(-0.01, 0.056),
+# CSFE for H = 1 -------------------
+plot(y_axis, csfem_lasso$h1, type = "l", col = "#F57C00", lwd = 2, ylim = c(-0.02, 0.25),
      ylab = "h1", xlab = "Index", main = "Comparison of h1 across models")
-
-lines(date[181:257], csfem_lassow$h1, col = "red",   lwd = 2)
-#lines(date[181:257], csfem_rf$h1,   col = "blue",  lwd = 2)
-#lines(date[181:257], csfem_boosting$h1, col = "green", lwd = 2)
-
-legend("topleft",
-       legend = c("Lasso", "Elastic Net", "Random Forest", "Boosting"),
-       col = c("orange", "red", "blue", "green"),
-       lty = 1, lwd = 2)
-
-# Base R plotting
-plot(date[181:257], csfem_lasso$h3, type = "l", col = "orange", lwd = 2, ylim = c(0.05, 0.04),
-     ylab = "h3", xlab = "Index", main = "Comparison of h4 across models")
-
-lines(date[181:257], csfem_enet$h3, col = "red",   lwd = 2)
-#lines(date[181:257], csfem_rf$h3,   col = "blue",  lwd = 2)
-#lines(date[181:257], csfem_boosting$h3, col = "green", lwd = 2)
+abline(h = 0, col = "black", lty = 2, lwd = 1)  # dashed black line
+lines(y_axis, csfem_enet$h1,   col = "#1ABC9C",  lwd = 2)
+lines(y_axis, csfem_rf$h1,   col = "#1F497D",  lwd = 2)
+#lines(y_axis, csfem_boosting$h1, col = "green", lwd = 2)
 
 legend("topleft",
-       legend = c("Lasso", "Elastic Net", "Random Forest", "Boosting"), 
-       col = c("orange", "red", "blue", "green"),
+       legend = c("Lasso", "Elastic Net", "Random Forest"),
+       col = c("#F57C00", "#1ABC9C", "#1F497D"),
        lty = 1, lwd = 2)
 
-CSFEm <- cbind(csfem_lasso, csfem_enet, csfem_rf, csfem_boosting)
+# CSFE for H = 12 -------------------
+plot(y_axis, csfem_lasso$h12, type = "l", col = "#4C7DFF", lwd = 2,ylim = c(-0.01, 0.52),
+     ylab = "h1", xlab = "Index", main = "Comparison of h12 across models")
+
+lines(y_axis, csfem_enet$h12,   col = "#FF6F61",  lwd = 2)
+lines(y_axis, csfem_rf$h12,   col = "#708090",  lwd = 2)
+#lines(y_axis, csfem_boosting$h12, col = "green", lwd = 2)
+
+legend("topleft",
+       legend = c("Lasso", "Elastic Net", "Random Forest"),
+       col = c("#4C7DFF", "#FF6F61", "#708090"),
+       lty = 1, lwd = 2)
 
 # ================================================

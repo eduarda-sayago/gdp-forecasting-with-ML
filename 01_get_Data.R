@@ -39,65 +39,30 @@ saveRDS(rawm_ibc, "rawM_ibc.rds")
 saveRDS(raww_ibc, "rawW_ibc.rds")
 
 rm(varmonth_1, meteorologicos_1, weather_1, regional_1, nacional_1, ipea_1)
+#rm(varmonth,meteorologicos, weather, regional, nacional, ipea)
 
 # ================================================
-# -----Cut data - PIB_RS [2002-01 to 2025-06]----- obs: fix later. gotta save data_m otherwise it wont go
+# -----Cut data - PIB_RS [2002-01 to 2025-06]-----
 # ================================================
 
-nacional = nacional[-1,-1]
-meteorologicos = meteorologicos[-1:-12,-1:-2]
-regional = regional[-1,-1]
-ipea = ipea[-283:-284,-1]
-
-nacional = nacional[-283,] 
-regional = regional[-283,]
-
-# ALL THE 
-
-rm(varmonth, meteorologicos, weather, regional, nacional, ipea)
-
-# base_NSA = cbind(ipea,
-#                  nacional,
-#                  meteorologicos,
-#                  regional)
-
-#base_NSA[,1] <- as.Date(base_NSA[,1])
-#base_NSA <- base_NSA %>% arrange(base_NSA[,1])
-
-#saveRDS(data_m, "data_m.rds")
-#rm(list = setdiff(ls(), c("base_NSA")))
-
-# base_NSA with no meteorologicos
-
-##base_noweather = cbind(ipea,nacional, regional)
-
-##base_noweather[,1] <- as.Date(base_noweather[,1])
-##base_noweather <- base_noweather %>% arrange(base_noweather[,1])
-
-##saveRDS(base_noweather, "base_noweather.rds")
-
-#rm(list = setdiff(ls(), c("base_NSA")))
-
-# Raw data w/ Seasonal adjustment (if available)
-
-# nacional_SA <- read.csv2("Data/data_SA/nacional_mensal.csv")
-# regional_SA <- read.csv2("Data/data_SA/regional_mensal.csv")
-# meteorologicos <- read.csv("Data/data_SA/meteorologicos_mensal.csv")
-# ipea_SA <- read.csv("Data/data_SA/dadosipeaSA.csv")
+# library(dplyr)
+# library(lubridate)
 # 
-# nacional_SA = nacional_SA[-1,-1]
-# regional_SA = regional_SA[-1,-1]
-# ipea_SA = ipea_SA[-283:-284,-1]
+# nacional <- read.csv("Data/data_NSA/nacional_mensal.csv")
+# regional <- read.csv("Data/data_NSA/regional_mensal.csv")
+# meteorologicos <- read.csv("Data/data_NSA/meteorologicos_mensal.csv")
+# ipea <- read.csv("Data/data_NSA/dadosipeaNSA.csv")
 # 
-# nacional_SA = nacional_SA[-283,] 
-# regional_SA = regional_SA[-283,]
+# nacional2 = nacional[2:281, -(1:2)] #
+# regional2 = regional[2:281,-(1:2)] #
+# meteorologicos2 = meteorologicos[13:292, -(1:2)] #
+# ipea2 = ipea[1:280,-1]
 # 
-# base_SA = cbind(ipea_SA,
-#                 nacional_SA,
-#                 meteorologicos,
-#                 regional_SA)
+# base_NSA = cbind(regional2, nacional2, meteorologicos2, ipea2)
+# base_NSA <- base_NSA %>% select(date, everything())
+# base_NSA[,1] <- as.Date(base_NSA[,1])
 # 
-# base_SA[,1] <- as.Date(base_SA[,1])
-# base_SA <- base_SA %>% arrange(base_SA[,1])
-# 
-# saveRDS(base_SA, "base_SA.rds")
+# saveRDS(base_NSA, "base_NSA.rds")
+#rm(nacional2, regional2, meteorologicos2, ipea2)
+
+rm(varmonth,meteorologicos, weather, regional, nacional, ipea)

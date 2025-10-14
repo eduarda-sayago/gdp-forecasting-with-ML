@@ -9,6 +9,10 @@
 # tipo 2 = tem negativos → nada
 # tipo 3 = tem negativos e zeros → faz X + 1
 
+# Sugestao
+# tipo 2 = tem negativos → soma -min(serie) +0.01 e faz log?
+# tipo 3 = tem negativos e zeros → soma -min(serie) +0.01 e faz log?
+
 get_logs <- function(df) {
   # df: data.frame com as séries (cada coluna é uma variável)
   # devolve: lista com $results (data.frame) e $type_df (data.frame: variable, tipo)

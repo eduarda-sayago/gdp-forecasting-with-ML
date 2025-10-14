@@ -75,7 +75,7 @@ call_models = function(data, model_name, model_function, variable, type = "defau
 
 call_models1 = function(data, model_name, model_function, variable, type = "default"){
   
-  #' Chamadas para Modelos de Previsão - *MONTHLY VERSION*
+  #' Chamadas para Modelos de Previsão - *MONTHLY*
   #'
   #' Esta função aplica um modelo de previsão a um conjunto de dados, utilizando uma janela deslizante para gerar previsões.
   #'
