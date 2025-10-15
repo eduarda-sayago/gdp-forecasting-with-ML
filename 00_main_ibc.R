@@ -2,6 +2,10 @@
 # ---------------------Main-----------------------
 # ================================================
 
+#to do after: unify labels as "m" and "q" at beginning
+#transf graphs in function
+#maybe "if dont have it install packages" function
+
 library(dplyr)
 library(lubridate)
 
@@ -29,7 +33,6 @@ message("[1] Loading data")
 
 ## ORIGINAL, UNTRANSFORMED DATA.
 rawm_ibc <- readRDS("rawM_ibc.rds")
-raww_ibc <- readRDS("rawW_ibc.rds")
 
 # ================================================
 # --------Preprocessing for Stationarity----------
@@ -40,9 +43,9 @@ rawm_ibc_log <- get_logs(rawm_ibc)
 type_dfm <- rawm_ibc_log$type_df
 logm_results <- do.call(cbind, rawm_ibc_log$results) %>% as.data.frame()
 
-# Diagnosic: remove santavpalmar insolacaototal - possibly contains mistakes in data
+# santavpalmar insolacaototal - possibly contains mistakes in data
 
-raww_ibc_log <- get_logs(raww_ibc)
+raww_ibc_log <- get_logs1(rawm_ibc)
 type_dfw <- raww_ibc_log$type_df
 logw_results <- do.call(cbind, raww_ibc_log$results) %>% as.data.frame()
 
@@ -53,24 +56,23 @@ logw_results <- do.call(cbind, raww_ibc_log$results) %>% as.data.frame()
 message("[3] Applying ADF test and differencing")
 
 rawm_stry <- get_stationarity(logm_results, type_df = type_dfm)
-raww_stry <- get_stationarity(logw_results, type_df = type_dfw)
+#raww_stry <- get_stationarity(logw_results, type_df = type_dfw)
 
 type_dfm <- rawm_stry$type_df
 rawm_stry <- as.data.frame(rawm_stry$df)
 
-type_dfw <- raww_stry$type_df
-raww_stry <- as.data.frame(raww_stry$df)
+# type_dfw <- raww_stry$type_df
+# raww_stry <- as.data.frame(raww_stry$df)
 
 message("[4] Applying seasonal differencing")
 
 datasetm <- get_seas_stationarity(logm_results, type_df = type_dfm, freq = 12)
-datasetw <- get_seas_stationarity(logw_results, type_df = type_dfw, freq = 12)
 
 type_dfm <- datasetm$type_df
 datasetm <- as.data.frame(datasetm$df)
 
-type_dfw <- datasetw$type_df
-datasetw <- as.data.frame(datasetw$df)
+# type_dfw <- datasetw$type_df
+# datasetw <- as.data.frame(datasetw$df)
 
 # Adding dummies in datasetm
 
@@ -97,20 +99,21 @@ datasetm$d_shift <- ifelse(datasetm$date < as.Date("2013-01-01"),
                            seq_len(sum(datasetm$date < as.Date("2013-01-01"))),0)
 
 # Adding dummies in datasetw
-
+# ...
+saveRDS(datasetm,"datasetm.rds")
 
 # Storing and removing Date column
 dfdate = datasetm$date
-# dfdate = as.Date(date, origin = "1970-01-01")
+dfdate = as.Date(date, origin = "1970-01-01")
 
 datasetm$date <- NULL
 datasetm[] <- lapply(datasetm, as.numeric)
 
-datasetw$date <- NULL
-datasetw[] <- lapply(datasetw, as.numeric)
+# datasetw$date <- NULL
+# datasetw[] <- lapply(datasetw, as.numeric)
 
-rm(rawm_ibc_log, raww_ibc_log, logm_results, logw_results, raww_stry, rawm_stry)
-
+rm(dummies, rawm_ibc_log, logm_results, rawm_stry)
+#rm(raww_ibc_log, logw_results, raww_stry)
 # ================================================
 # -----------------Forecasting--------------------
 # ================================================
@@ -118,14 +121,15 @@ rm(rawm_ibc_log, raww_ibc_log, logm_results, logw_results, raww_stry, rawm_stry)
 #=====
 message("Mean")
 
-mean_model <- call_models(dataset, 'Mean - PIB_RS', get_mean, "pib_rs")
+mean_modelp <- call_models(dataset, 'Mean - PIB_RS', get_mean, "pib_rs") #not saved yet
 # h=1 RMSE: 0.08924119 ; MAE: 0.06789313  
 # h=4 RMSE: 0.08885499 ; MAE: 0.06764367  
 
 mean_model <- call_models(datasetm, 'Mean - IBC-m', get_mean, "ibc_rs")
 # h=1 RMSE: 0.1026092; MAE: 0.06800124  
 # h=12 RMSE: 0.1220261; MAE: 0.08669113  
-mean_model <- call_models(datasetw, 'Mean - IBC-w', get_mean, "ibc_rs")
+
+#mean_model <- call_models(datasetw, 'Mean - IBC-w', get_mean, "ibc_rs")
 # h=1 RMSE: 0.1026092  ; MAE:  0.06800124 
 # h=12 RMSE: 0.1220261 ; MAE:  0.08669113 
 
@@ -140,10 +144,6 @@ benchmark <- call_models1(datasetm, 'SARIMA - IBC-m', get_sarima, "ibc_rs")
 # h=1 RMSE: 0.06629558; MAE: 0.04880438; MAPE: 1.048171 
 # h=12 RMSE: 0.09837429; MAE: 0.07007968; MAPE: 1.501778  
 
-benchmark2 <- call_models1(datasetm, 'SARIMA - IBC-m', get_sarima, "ibc_rs")
-# h=1 RMSE: 0.06629558 ; MAE: 0.04880438 ; MAPE: 1.048171  
-# h=12 RMSE: 0.09837429 ; MAE: 0.07007968 ; MAPE: 1.501778   
-
 #=====
 message("LASSO")
 
@@ -155,36 +155,37 @@ lasso_model <- call_models1(datasetm, 'LASSO - IBC-m', get_lasso, "ibc_rs")
 # h=1 RMSE: 0.03649598; MAE: 0.02839302; MAPE: 0.6150090 
 # h=12 RMSE: 0.05989764; MAE: 0.04312109; MAPE: 0.9387088 
 
-lasso_wmodel <- call_models1(datasetw, 'LASSO - IBC-w', get_lasso, "ibc_rs")
+#lasso_wmodel <- call_models1(datasetw, 'LASSO - IBC-w', get_lasso, "ibc_rs")
 # h=1 RMSE: 0.03860373 ; MAE:  0.02976507; MAPE:
 # h=12 RMSE: 0.07399347 ; MAE: 0.05377384; MAPE:
 
 #=====
 message("Elastic Net")
 
-enet_modelp <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs")
+enet_modelp <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs") #not saved
 # h=1 RMSE: 0.05790124 ; MAE: 0.04586020; MAPE:    
 # h=4 RMSE: 0.12473872 ; MAE: 0.09587616; MAPE:
-enet_model <- call_models1(datasetm, 'Elastic Net', get_elasticnet, "ibc_rs")
+
+enet_model <- call_models1(datasetm, 'Elastic Net - IBC-m', get_elasticnet, "ibc_rs")
 # h=1 RMSE: 0.05072413 ; MAE: 0.03893112; MAPE: 0.8390616 
 # h=12 RMSE: 0.06412265 ; MAE: 0.05130680; MAPE: 1.1120433 
-enet_wmodel <- call_models1(datasetw, 'Elastic Net', get_elasticnet, "ibc_rs")
+
+#enet_wmodel <- call_models1(datasetw, 'Elastic Net', get_elasticnet, "ibc_rs")
 # h=1 RMSE: ; MAE:    ; MAPE:
 # h=12 RMSE: ; MAE:    ; MAPE:
-
 
 #=====
 message("Random Forest")
 
-rf_model <- call_models1(datasetm, 'Random Forest', get_rf, "ibc_rs")
+rf_model <- call_models1(datasetm, 'Random Forest - IBC-m', get_rf, "ibc_rs")
 # h=1 RMSE: 0.05013537 ; MAE: 0.03508641; MAPE: 0.7569036 
 # h=12 RMSE: 0.05428087 ; MAE:0.04022022; MAPE: 0.8674320 
-rf_wmodel <- call_models1(datasetw, 'Random Forest', get_rf, "ibc_rs")
+
+#rf_wmodel <- call_models1(datasetw, 'Random Forest', get_rf, "ibc_rs")
 # h=1 RMSE: ; MAE:     
 # h=4 RMSE: ; MAE:  
 
-message("Boosting")
-
+#message("Boosting")
 # boost_model <- call_models1(datasetm, 'Boosting', get_boosting, "ibc_rs")
 # # h=1 RMSE: 0.1026092; MAE: 0.06800124 ; MAPE:  1.445637 
 # # h=12 RMSE:0.1002764; MAE: 0.06661304 ; MAPE:  1.417023  
@@ -193,83 +194,25 @@ message("Boosting")
 # # h=4 RMSE: ; MAE:  
 
 # ================================================
-# ----------Graphs with original series-----------
-# ================================================
-
-#=====
-# sarimah1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,1])
-# sarimah4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,2])
-# 
-# # Checking series untransformed (back to original)
-# y0 <- 129.1651999
-# log_y0 <- log(y0)
-# z_orig  <- sarimah1$original
-# z_pred  <- sarimah1$predito
-# log_recon_orig <- log_y0 + cumsum(z_orig)
-# log_recon_pred <- log_y0 + cumsum(z_pred)
-# y_recon_orig <- exp(log_recon_orig)
-# y_recon_pred <- exp(log_recon_pred)
-# sarimah1$orig_recon  <- y_recon_orig
-# sarimah1$pred_recon  <- y_recon_pred
-# matplot(sarimah1$date, sarimah1[, c("orig_recon", "pred_recon")], 
-#         type = "l", lty = 1, lwd = 2, col = c("black","red"),
-#         ylab = "Value", xlab = "Date", main = "SARIMA - Observed vs Forecast")
-
-#=====
-# lassoh1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = lasso_model$forecasts[,1])
-# lassoh4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = lasso_model$forecasts[,2])
-# 
-# # Checking series untransformed (back to original)
-# z_orig  <- lassoh1$original
-# z_pred  <- lassoh1$predito
-# log_recon_orig <- log_y0 + cumsum(z_orig)
-# log_recon_pred <- log_y0 + cumsum(z_pred)
-# y_recon_orig <- exp(log_recon_orig)
-# y_recon_pred <- exp(log_recon_pred)
-# lassoh1$orig_recon  <- y_recon_orig
-# lassoh1$pred_recon  <- y_recon_pred
-# matplot(lassoh1$date, lassoh1[, c("orig_recon", "pred_recon")], 
-#         type = "l", lty = 1, lwd = 2, col = c("black","red"),
-#         ylab = "Value", xlab = "Date", main = "LASSO - Observed vs Forecast")
-
-#=====
-# eneth1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = enet_model$forecasts[,1])
-# eneth4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = enet_model$forecasts[,2])
-# 
-# # Checking series untransformed (back to original)
-# 
-# z_orig  <- eneth1$original
-# z_pred  <- eneth1$predito
-# log_recon_orig <- log_y0 + cumsum(z_orig)
-# log_recon_pred <- log_y0 + cumsum(z_pred)
-# y_recon_orig <- exp(log_recon_orig)
-# y_recon_pred <- exp(log_recon_pred)
-# eneth1$orig_recon  <- y_recon_orig
-# eneth1$pred_recon  <- y_recon_pred
-# matplot(eneth1$date, eneth1[, c("orig_recon", "pred_recon")], 
-#         type = "l", lty = 1, lwd = 2, col = c("black","red"),
-#         ylab = "Value", xlab = "Date", main = "Elastic Net - Observed vs Forecast")
-
-# ================================================
 # ---------------Diebold-Mariano test-------------
 # ================================================
 
-y <- datasetm$`ibc_rs`[181:257]
-dm_tests_ibc <- compute_dm(model_names = c("LASSO", "Elastic Net", "Random Forest"),
+yi <- datasetm$`ibc_rs`[181:257]
+dm_tests_ibc <- compute_dm1(model_names = c("LASSO", "Elastic Net", "Random Forest"),
                            model_dataframes = list(lasso_model, enet_model, rf_model),
                            horizons = c(1, 12),
-                           orig_data = y)
+                           orig_data = yi)
 
-meandm_test = compute_dmv2()
+#meandm_test = compute_dmv2()
 
 # ================================================
 # ------Performance evaluation through CSFE-------
 # ================================================
 
-csfem_lasso = csfe(lasso_model, benchmark, y)
-csfem_enet = csfe(enet_model, benchmark, y)
-csfem_rf = csfe(rf_model, benchmark, y)
-#csfem_boosting = csfe(boost_model, benchmark, y)
+csfem_lasso = csfe(lasso_model, benchmark, yi)
+csfem_enet = csfe(enet_model, benchmark, yi)
+csfem_rf = csfe(rf_model, benchmark, yi)
+#csfem_boosting = csfe(boost_model, benchmark, yi)
 
 csfem_lasso <- as.data.frame(csfem_lasso)
 csfem_enet <- as.data.frame(csfem_enet)
@@ -288,30 +231,6 @@ CSFE_df <- data.frame(date = y_axis,
                       rf_h1 = csfem_rf$h1,
                       rf_h12 = csfem_rf$h12) 
 
-# CSFE for H = 1 -------------------
-plot(y_axis, csfem_lasso$h1, type = "l", col = "#F57C00", lwd = 2, ylim = c(-0.02, 0.25),
-     ylab = "h1", xlab = "Index", main = "Comparison of h1 across models")
-abline(h = 0, col = "black", lty = 2, lwd = 1)  # dashed black line
-lines(y_axis, csfem_enet$h1,   col = "#1ABC9C",  lwd = 2)
-lines(y_axis, csfem_rf$h1,   col = "#1F497D",  lwd = 2)
-#lines(y_axis, csfem_boosting$h1, col = "green", lwd = 2)
-
-legend("topleft",
-       legend = c("Lasso", "Elastic Net", "Random Forest"),
-       col = c("#F57C00", "#1ABC9C", "#1F497D"),
-       lty = 1, lwd = 2)
-
-# CSFE for H = 12 -------------------
-plot(y_axis, csfem_lasso$h12, type = "l", col = "#4C7DFF", lwd = 2,ylim = c(-0.01, 0.52),
-     ylab = "h1", xlab = "Index", main = "Comparison of h12 across models")
-
-lines(y_axis, csfem_enet$h12,   col = "#FF6F61",  lwd = 2)
-lines(y_axis, csfem_rf$h12,   col = "#708090",  lwd = 2)
-#lines(y_axis, csfem_boosting$h12, col = "green", lwd = 2)
-
-legend("topleft",
-       legend = c("Lasso", "Elastic Net", "Random Forest"),
-       col = c("#4C7DFF", "#FF6F61", "#708090"),
-       lty = 1, lwd = 2)
+# c("#F57C00", "#1ABC9C", "#1F497D")
 
 # ================================================

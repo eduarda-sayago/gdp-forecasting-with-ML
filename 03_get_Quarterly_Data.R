@@ -1,4 +1,34 @@
-
+get_quarterly <- function(df) {
+  #' Aggregate Monthly Data to Quarterly (mean of months)
+  #' @param df A data.frame with a "date" column and numeric monthly variables.
+  #' @return A data.frame aggregated to quarterly frequency (full quarters only).
+  
+  df$date <- as.Date(df$date)
+  numeric_cols <- setdiff(names(df), "date")
+  
+  # Assign quarter IDs
+  y <- as.integer(format(df$date, "%Y"))
+  m <- as.integer(format(df$date, "%m"))
+  qid <- paste0(y, "Q", (m - 1) %/% 3 + 1)
+  
+  # Keep only quarters with 3 observations
+  counts <- table(qid)
+  valid_q <- names(counts[counts == 3])
+  df <- df[qid %in% valid_q, ]
+  qid <- qid[qid %in% valid_q]
+  
+  # Aggregate numeric columns by quarter
+  agg <- t(sapply(split(df[, numeric_cols, drop = FALSE], qid), colMeans))
+  
+  # Determine first day of last month in each quarter
+  last_dates <- tapply(df$date, qid, max)
+  quarter_dates <- as.Date(sprintf("%04d-%02d-01", as.integer(format(last_dates, "%Y")), 
+                                   as.integer(format(last_dates, "%m"))))
+  
+  # Build final data.frame
+  out_df <- data.frame(date = quarter_dates, agg, row.names = NULL)
+  out_df[order(out_df$date), , drop = FALSE]
+}
 
 aggregate_to_quarterly <- function(results, info) {
   

@@ -52,7 +52,7 @@ call_models = function(data, model_name, model_function, variable, type = "defau
   
   for (i in for_ind) {
     filename <- paste0("forecast ",model_name,"-horizon-" , i, ".png")
-    filepath <- file.path("Plots", filename)
+    filepath <- file.path("Plots/Quarter", filename)
     png(filepath, width = 1000, height = 600)
     
     col_idx <- match(i, for_ind)  # find which column corresponds to horizon i
@@ -127,7 +127,7 @@ call_models1 = function(data, model_name, model_function, variable, type = "defa
   
   for (i in for_ind) {
     filename <- paste0("forecast ",model_name,"-horizon-" , i, ".png")
-    filepath <- file.path("Plots", filename)
+    filepath <- file.path("Plots/Month", filename)
     png(filepath, width = 1000, height = 600)
     
     col_idx <- match(i, for_ind)  # find which column corresponds to horizon i

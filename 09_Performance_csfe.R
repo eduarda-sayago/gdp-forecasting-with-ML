@@ -43,3 +43,27 @@ csfe = function(model, benchmark, y_real){
   cbind(h1, h12)
   
 }
+
+csfe1 = function(model, benchmark, y_real){
+  
+  #' Calcula CSFE para Diferentes Horizontes
+  #'
+  #' Esta função calcula o Cumulative Squared Forecast Error (CSFE) para diferentes horizontes de previsão
+  #' a partir das previsões de um modelo e de um benchmark.
+  #'
+  #' @param model Um objeto contendo as previsões do modelo, com colunas representando diferentes horizontes.
+  #' @param benchmark Um objeto contendo as previsões do benchmark, com colunas correspondendo aos mesmos horizontes.
+  #' @param y_real Um vetor numérico contendo os valores reais observados.
+  #' @return Uma matriz com os erros quadráticos acumulados para cada horizonte de previsão.
+  #'
+  #' @examples
+  #' csfe_results <- csfe(model, benchmark, y_real)
+  #' print(csfe_results)
+  #'
+  
+  h1 = f_csfe(model$forecast[,1], benchmark$forecasts[,1], y_real = y_real)
+  h4 = f_csfe(model$forecast[,2], benchmark$forecasts[,2], y_real = y_real)
+  
+  cbind(h1, h4)
+  
+}

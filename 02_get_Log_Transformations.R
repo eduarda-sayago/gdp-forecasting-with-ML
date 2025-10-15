@@ -65,3 +65,59 @@ get_logs <- function(df) {
   
   return(list(results = as.data.frame(results), type_df = type_df))
 }
+
+get_logs1 <- function(df) {
+  # df: data.frame com as séries (cada coluna é uma variável)
+  # devolve: lista com $results (data.frame) e $type_df (data.frame: variable, tipo)
+  
+  n <- ncol(df)
+  results <- df # inicialmente copia (vamos substituir só as colunas transformáveis)
+  types <- integer(n)
+  names(types) <- colnames(df)
+  
+  for (i in seq_len(n)) {
+    x <- df[[i]]
+    colname <- colnames(df)[i]
+    
+    # 4 = coluna de data (mantemos sem transformação)
+    if (inherits(x, "Date") || inherits(x, "POSIXt")) {
+      types[i] <- 4
+      results[[i]] <- x
+      next
+    }
+    
+    has_neg <- any(x < 0, na.rm = TRUE)
+    has_zero <- any(x == 0, na.rm = TRUE)
+    
+    # Mapping:
+    # type 0 = positive → log(X)
+    # type 1 = zeroes → log(X + 2)
+    # type 2 = negatives → nothing
+    # type 3 = zeroes and neg → X + 1
+    
+    if (!has_neg && !has_zero) {
+      types[i] <- 0L
+      results[[i]] <- log(x)
+      
+    } else if (!has_neg && has_zero) {
+      types[i] <- 1L
+      results[[i]] <- log(x + 2)
+    
+      } else if (has_neg && !has_zero) {
+      types[i] <- 2L
+      results[[i]] <- log(x -min(x) +2)
+    
+      } else { # has_neg && has_zero
+      types[i] <- 3L
+      results[[i]] <- log(x -min(x) +2)
+    }
+  }
+  
+  type_df <- data.frame(
+    variable = colnames(df),
+    type = as.integer(types),
+    stringsAsFactors = FALSE
+  )
+  
+  return(list(results = as.data.frame(results), type_df = type_df))
+}

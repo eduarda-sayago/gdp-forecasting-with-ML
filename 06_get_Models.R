@@ -16,7 +16,7 @@ f_rmse = function(x, y){
   #' @examples
   #' f_rmse(c(2, 3, 5), c(1, 2, 6)) # Retorna a RMSE entre os vetores
   
-  sqrt(mean((x - y)^2))
+  sqrt(mean((y - x)^2))
 }
 
 # ================================================
@@ -37,7 +37,7 @@ f_mae = function(x, y){
   #' f_mae(c(2, 3, 5), c(1, 2, 6)) # Retorna o MAE entre os vetores
   #'
   
-  mean(abs(x - y))
+  mean(abs(y - x))
 }
 
 # ================================================
@@ -172,7 +172,6 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
   #PREPARANDO OS DADOS
   data_in = dataprep(
     type = 'default',
-    #type = 'tb',
     ind = ind,
     df = df,
     variable = variable,
