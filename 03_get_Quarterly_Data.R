@@ -1,34 +1,8 @@
-get_quarterly <- function(df) {
-  #' Aggregate Monthly Data to Quarterly (mean of months)
-  #' @param df A data.frame with a "date" column and numeric monthly variables.
-  #' @return A data.frame aggregated to quarterly frequency (full quarters only).
-  
-  df$date <- as.Date(df$date)
-  numeric_cols <- setdiff(names(df), "date")
-  
-  # Assign quarter IDs
-  y <- as.integer(format(df$date, "%Y"))
-  m <- as.integer(format(df$date, "%m"))
-  qid <- paste0(y, "Q", (m - 1) %/% 3 + 1)
-  
-  # Keep only quarters with 3 observations
-  counts <- table(qid)
-  valid_q <- names(counts[counts == 3])
-  df <- df[qid %in% valid_q, ]
-  qid <- qid[qid %in% valid_q]
-  
-  # Aggregate numeric columns by quarter
-  agg <- t(sapply(split(df[, numeric_cols, drop = FALSE], qid), colMeans))
-  
-  # Determine first day of last month in each quarter
-  last_dates <- tapply(df$date, qid, max)
-  quarter_dates <- as.Date(sprintf("%04d-%02d-01", as.integer(format(last_dates, "%Y")), 
-                                   as.integer(format(last_dates, "%m"))))
-  
-  # Build final data.frame
-  out_df <- data.frame(date = quarter_dates, agg, row.names = NULL)
-  out_df[order(out_df$date), , drop = FALSE]
-}
+# ================================================
+# --------Function - Monthly to Quarterly---------
+# ================================================
+
+# note: contains two functions -- aggregate_to_quarterly and to_quarterly.
 
 aggregate_to_quarterly <- function(results, info) {
   
@@ -118,4 +92,32 @@ aggregate_to_quarterly <- function(results, info) {
   
   ## Output
   return(list(results = out_results, info = info))
+}
+
+to_quarterly <- function(df, date_col = "date", agg = c("last","sum","mean","first")) {
+  agg <- match.arg(agg)
+  
+  df <- df %>%
+    # ensure date and build q_date as YYYY-MM-01 (last month of quarter)
+    mutate(
+      !!date_col := as.Date(.data[[date_col]]),
+      q_date = as.Date(paste0(year(.data[[date_col]]),
+                              "-", sprintf("%02d", quarter(.data[[date_col]]) * 3),
+                              "-01"))
+    ) %>%
+    group_by(q_date) %>%
+    # apply chosen aggregation to all numeric columns (your numeric measurement columns)
+    {
+      if (agg == "last")    summarise(., across(where(is.numeric), ~ last(.x)))
+      else if (agg == "sum") summarise(., across(where(is.numeric), ~ sum(.x)))
+      else if (agg == "mean")summarise(., across(where(is.numeric), ~ mean(.x)))
+      else                  summarise(., across(where(is.numeric), ~ first(.x)))
+    } %>%
+    ungroup() %>%
+    arrange(q_date)
+  
+  # rename q_date -> date (Date class, YYYY-MM-01)
+  names(df)[names(df) == "q_date"] <- "date"
+  df$date <- as.Date(df$date)
+  df
 }
