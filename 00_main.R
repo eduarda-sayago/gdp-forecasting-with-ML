@@ -10,8 +10,9 @@ library(lubridate)
 # ================================================
 
 source("01_get_Data.R")
-source("02_get_Stationary_SW.R")
 source("03_get_Quarterly_Data.R")
+source("02_get_Log_Transformations.R")
+source("03_get_Stationarity.R")
 source("04_get_Data_Prep.R")
 source("05_get_Rolling_Window.R")
 source("06_get_Models.R")
@@ -19,253 +20,123 @@ source("07_call_Model.R")
 source("08_Compute_DM.R")
 source("09_Performance_csfe.R")
 
-#what to keep
-#rm(list = setdiff(ls(), c("",)))
-
-
 # ================================================
 # ---------------Calling Dataset------------------
 # ================================================
 message("[1] Loading data")
 
-data_m <- readRDS("Data/base_NSA.rds")
-data_q <- read.csv2("Data/quarterly_NSA.csv")
+datasetq <- readRDS("dataset_gdp.rds") # Or run line 30:68
 
-data_q$date <- as.Date(data_q$date)
-
-# ================================================
-# --------Preprocessing for Stationarity----------
-# ================================================
-
-sw_list <- as.data.frame(read.csv2("Stock_watson.csv"))
-
-message("[2] Stock-Watson transforms (monthly)")
-
-stdata_m <- get_stationary_SW(data_m, sw_list)
-info_stm <- stdata_m$info
-
-datamon <- do.call(cbind, stdata_m$results) %>% as.data.frame()
-
-message("[3] Stock-Watson transforms (quarterly)")
-
-stdata_q <- get_stationary_SW(data_q, sw_list)
-
-info_stq <- stdata_q$info
-dataqrt <- do.call(cbind, stdata_q$results) %>% as.data.frame()
+rawm_gdp <- readRDS("Data/base_NSA.rds")
+rawq_gdp <- read.csv2("Data/quarterly_NSA.csv")
 
 # ================================================
 # --------Transforming to Quarterly data----------
 # ================================================
+message("[2] Aggregating monthly series to quarterly")
 
-message("[4] Aggregating monthly series to quarterly")
+rawm_gdp$date <- as.Date(rawm_gdp$date)
+rawm_gdp <- to_quarterly(rawm_gdp, agg = "mean")
+rawm_gdp <- rawm_gdp[1:93,]
 
-quarter_ds <- aggregate_to_quarterly(stdata_m$results, stdata_m$info)
+message("[3] Merging datasets")
+rawq_gdp$date <- as.Date(rawq_gdp$date)
+datasetq <- merge(rawq_gdp, rawm_gdp, by = "date")
 
-# ================================================
-# --------------Merging datasets------------------
-# ================================================
-message("[5] Merging datasets and including dummies")
-
-mq_results <- do.call(cbind, quarter_ds$results) %>% as.data.frame()
-mq_results$date <- as.Date(mq_results$date, origin = "1970-01-01")
-dataqrt$date <- as.Date(dataqrt$date, origin = "1970-01-01")
-
-dataset <- merge(dataqrt, mq_results, by = "date")
-
-#Adding dummies
-dummies <- data.frame(matrix(ncol = 0, nrow = 92))
-dummies$quarter <- lubridate::quarter(dataset$date)
-
-dataset$Q2 <- ifelse(dummies$quarter == 2, 1, 0)
-dataset$Q3 <- ifelse(dummies$quarter == 3, 1, 0)
-dataset$Q4 <- ifelse(dummies$quarter == 4, 1, 0)
-
-dataset$d_pandemic <- ifelse(dataset$date >= as.Date("2020-03-01") &
-                               dataset$date <= as.Date("2020-06-01"), 1, 0)
-dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
-# dataset$d_shift <- ifelse(dataset$date < as.Date("2013-03-01"), 
-#                           seq_len(sum(dataset$date < as.Date("2013-03-01"))),0)
 # ================================================
 # ------------------Checkpoint--------------------
 # ================================================
 
-saveRDS(dataset, "dataset.rds")
-rm(data_q, data_m, sw_list, stdata_m, info_stm, stdata_q, info_stq, datamon, dataqrt, quarter_ds, mq_results, dummies)
+#Adding dummies
+dummies <- data.frame(matrix(ncol = 0, nrow = nrow(datasetq)))
+dummies$quarter <- lubridate::quarter(datasetq$date)
 
-dataset <- readRDS("dataset.rds")
-date = dataset$date
-dataset$date <- NULL
-dataset[] <- lapply(dataset, as.numeric)
+datasetq$Q2 <- ifelse(dummies$quarter == 2, 1, 0)
+datasetq$Q3 <- ifelse(dummies$quarter == 3, 1, 0)
+datasetq$Q4 <- ifelse(dummies$quarter == 4, 1, 0)
 
-datasetn <- dataset[1:71,]
-daten <- dataset$date[1:71,]
-datasetn$date <- NULL
-datasetn[] <- lapply(datasetn, as.numeric)
-# --- Making sure data is stationary
+datasetq$d_pandemic <- ifelse(datasetq$date >= as.Date("2020-03-01") &
+                               datasetq$date <= as.Date("2020-06-01"), 1, 0)
+datasetq$d_shift <- ifelse(datasetq$date < as.Date("2013-03-01"),
+                          seq_len(sum(datasetq$date < as.Date("2013-03-01"))),0)
+dateg = datasetq$date
+datasetq$date <- NULL
+datasetq[] <- lapply(datasetq, as.numeric)
 
-message("[6] Checking stationarity (ADF ndiffs) on merged dataset...")
-test <- get_stationarity(dataset)
-rm(test)
+rm(rawm_gdp, rawq_gdp, dummies)
 
+#saveRDS(datasetq, "dataset_gdp.rds")
 
 # ================================================
 # -----------------Forecasting--------------------
 # ================================================
 
 #=====
-message("Mean")
+# message("Mean")
 
-mean_modelp <- call_models(dataset, 'Mean', get_mean, "pib_rs")
-# h=1 RMSE: 0.08924119; MAE: 0.06789313 
-# h=4 RMSE: 0.08880100; MAE: 0.06757122
+# mean_model <- call_models(datasetq, 'Mean', get_mean, "pib_rs")
 
 #=====
 message("SARIMA")
 
-benchmarkp <- call_models(dataset, 'SARIMA', get_sarima, "pib_rs")
-# h=1 RMSE: 0.07011117; MAE: 0.04844195; MAPE: 99.58476
-# h=4 RMSE: 0.07980111; MAE: 0.05570668; MAPE: 127.10611 
-benchmarkn <- call_models(datasetn, 'SARIMA - no pandemic', get_sarima, "pib_rs")
-# h=1 RMSE: 0.03664326; MAE: 0.02755062; MAPE: 120.6778 
-# h=4 RMSE: 0.03803226; MAE: 0.03033111; MAPE: 100.7422  
-
-# test <- as.data.frame(benchmark$forecasts)
-# test <- cbind(date[65:92], dataset$pib_rs[65:92],test)
-# library(writexl)
-# write_xlsx(test, "sarimaresults.xlsx")
+benchmarkq <- call_models(datasetq, 'SARIMA', get_sarima, "pib_rs")
+# h=1 RMSE: 10.13834; MAE: 7.387079; MAPE: 5.463893
+# h=4 RMSE: 11.06123; MAE: 7.043361; MAPE: 5.09347
 
 #=====
 message("LASSO")
 
-lasso_modelp <- call_models(dataset, 'LASSO', get_lasso, "pib_rs")
-# h=1 RMSE: 0.05619033 ; MAE: 0.03669128; MAPE: 97.0483 
-# h=4 RMSE: 0.06089886 ; MAE: 0.04466303; MAPE: 101.9442 
-
-lasso_modeln <- call_models(datasetn, 'LASSO - no pandemic', get_lasso, "pib_rs")
-# h=1 RMSE: 0.04617606 ; MAE: 0.03713081 ; MAPE: 128.9973 
-# h=4 RMSE: 0.04662754 ; MAE: 0.03607676 ; MAPE: 172.0447   
+lasso_modelq <- call_models(dataset, 'LASSO', get_lasso, "pib_rs")
+# h=1 RMSE: 5.361284 ; MAE: 4.273517; MAPE: 3.189909 
+# h=4 RMSE: 7.646238 ; MAE: 5.868104; MAPE: 4.320331    
 
 #=====
 message("Elastic Net")
 
-enet_modelp <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs")
-# h=1 RMSE: 0.05440103  ; MAE: 0.04112094; MAPE: 91.74626 
-# h=4 RMSE: 0.05253469  ; MAE: 0.03919072 ; MAPE: 85.84087 
-
-enet_modeln <- call_models(datasetn, 'Elastic Net - no pandemic', get_elasticnet, "pib_rs")
-# h=1 RMSE: 0.04589452  ; MAE: 0.03648708 ; MAPE: 117.5919 
-# h=4 RMSE: 0.04606393 ; MAE: 0.03566886 ; MAPE: 122.5221  
+enet_modelq <- call_models(datasetq, 'Elastic Net', get_elasticnet, "pib_rs")
+# h=1 RMSE: 5.970406  ; MAE: 4.545163; MAPE: 3.388999 
+# h=4 RMSE: 7.632532  ; MAE: 5.898247 ; MAPE: 4.343466
 
 #=====
 message("Random Forest")
 
-rf_modelp <- call_models(dataset, 'Random Forest', get_rf, "pib_rs")
-# h=1 RMSE: 0.05637370 ; MAE: 0.04002083 ; MAPE: 92.02282 
-# h=4 RMSE: 0.05071925 ; MAE: 0.03560388 ; MAPE: 84.35485
-
-#=====
-# message("Boosting")
-# 
-# boost_modelp <- call_models(dataset, 'Boosting', get_boosting, "pib_rs")
-# h=1 RMSE: 0.05718182 ; MAE: 0.03720618 ; MAPE: 101.8835 
-# h=4 RMSE: 0.06833421 ; MAE: 0.05230112 ; MAPE: 118.3273 
-
-# ================================================
-# ---------Graphs with original series------------
-# ================================================
-
-#=====
-# sarimah1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,1])
-# sarimah4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = sarima_model$forecasts[,2])
-# 
-# # Checking series untransformed (back to original)
-# y0 <- 129.1651999
-# log_y0 <- log(y0)
-# z_orig  <- sarimah1$original
-# z_pred  <- sarimah1$predito
-# log_recon_orig <- log_y0 + cumsum(z_orig)
-# log_recon_pred <- log_y0 + cumsum(z_pred)
-# y_recon_orig <- exp(log_recon_orig)
-# y_recon_pred <- exp(log_recon_pred)
-# sarimah1$orig_recon  <- y_recon_orig
-# sarimah1$pred_recon  <- y_recon_pred
-# matplot(sarimah1$date, sarimah1[, c("orig_recon", "pred_recon")], 
-#         type = "l", lty = 1, lwd = 2, col = c("black","red"),
-#         ylab = "Value", xlab = "Date", main = "SARIMA - Observed vs Forecast")
-
-#=====
-# lassoh1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = lasso_model$forecasts[,1])
-# lassoh4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = lasso_model$forecasts[,2])
-# 
-# # Checking series untransformed (back to original)
-# z_orig  <- lassoh1$original
-# z_pred  <- lassoh1$predito
-# log_recon_orig <- log_y0 + cumsum(z_orig)
-# log_recon_pred <- log_y0 + cumsum(z_pred)
-# y_recon_orig <- exp(log_recon_orig)
-# y_recon_pred <- exp(log_recon_pred)
-# lassoh1$orig_recon  <- y_recon_orig
-# lassoh1$pred_recon  <- y_recon_pred
-# matplot(lassoh1$date, lassoh1[, c("orig_recon", "pred_recon")], 
-#         type = "l", lty = 1, lwd = 2, col = c("black","red"),
-#         ylab = "Value", xlab = "Date", main = "LASSO - Observed vs Forecast")
-
-#=====
-# eneth1 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = enet_model$forecasts[,1])
-# eneth4 <- data.frame(date = tail(date, 28), original = tail(dataset[, 1], 28), predito = enet_model$forecasts[,2])
-# 
-# # Checking series untransformed (back to original)
-# 
-# z_orig  <- eneth1$original
-# z_pred  <- eneth1$predito
-# log_recon_orig <- log_y0 + cumsum(z_orig)
-# log_recon_pred <- log_y0 + cumsum(z_pred)
-# y_recon_orig <- exp(log_recon_orig)
-# y_recon_pred <- exp(log_recon_pred)
-# eneth1$orig_recon  <- y_recon_orig
-# eneth1$pred_recon  <- y_recon_pred
-# matplot(eneth1$date, eneth1[, c("orig_recon", "pred_recon")], 
-#         type = "l", lty = 1, lwd = 2, col = c("black","red"),
-#         ylab = "Value", xlab = "Date", main = "Elastic Net - Observed vs Forecast")
-
+rf_modelq <- call_models(datasetq, 'Random Forest', get_rf, "pib_rs")
+# h=1 RMSE: 7.479729  ; MAE: 4.601721  ; MAPE: 3.325140  
+# h=4 RMSE: 7.506680  ; MAE: 5.593859  ; MAPE: 4.095269 
 
 # ================================================
 # ---------------Diebold-Mariano test-------------
 # ================================================
 
-yp <- dataset$`pib_rs`[65:92]
+yq <- datasetq$`pib_rs`[65:92] #revise
 dm_tests <- compute_dm(model_names = c("LASSO", "Elastic Net", "Random Forest"),
-                           model_dataframes = list(lasso_modelp, enet_modelp, rf_modelp),
+                           model_dataframes = list(lasso_modelq, enet_modelq, rf_modelq),
                            horizons = c(1, 4),
-                           orig_data = yp)
-
-#meandm_test = compute_dmv2()
+                           orig_data = yq)
 
 # ================================================
 # ------Performance evaluation through CSFE-------
 # ================================================
 
-csfep_lasso = csfe1(lasso_modelp, benchmarkp, yp)
-csfep_enet = csfe1(enet_modelp, benchmarkp, yp)
-csfep_rf = csfe1(rf_modelp, benchmarkp, yp)
-#csfep_boosting = csfe1(boost_modelp, benchmarkp, yp)
+qcsfe_lasso = csfe(lasso_modelq, benchmarkq, yq)
+qcsfe_enet = csfe(enet_modelq, benchmarkq, yq)
+qcsfe_rf = csfe(rf_modelq, benchmarkq, yq)
 
-csfep_lasso <- as.data.frame(csfep_lasso)
-csfep_enet <- as.data.frame(csfep_enet)
-csfep_rf <- as.data.frame(csfep_rf)
-#csfep_boosting <- as.data.frame(csfep_boosting)
+qcsfe_lasso <- as.data.frame(qcsfe_lasso)
+qcsfe_enet <- as.data.frame(qcsfe_enet)
+qcsfe_rf <- as.data.frame(qcsfe_rf)
 
 # ================================================
 # --------------------Graphs----------------------
 # ================================================
 y_ax <- date[65:92]
-CSFE_q <- data.frame(date = y_ax,
-                      lasso_h1 = csfep_lasso$h1,
-                      lasso_h12 = csfep_lasso$h4,
-                      enet_h1 = csfep_enet$h1,
-                      enet_h12 = csfep_enet$h4,
-                      rf_h1 = csfep_rf$h1,
-                      rf_h12 = csfep_rf$h4) 
+csfe_q <- data.frame(date = y_ax,
+                      lasso_h1 = qcsfe_lasso$h1,
+                      lasso_h12 = qcsfe_lasso$h4,
+                      enet_h1 = qcsfe_enet$h1,
+                      enet_h12 = qcsfe_enet$h4,
+                      rf_h1 = qcsfe_rf$h1,
+                      rf_h12 = qcsfe_rf$h4) 
 
 # c("#F57C00", "#1ABC9C", "#1F497D")
 

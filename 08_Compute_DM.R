@@ -50,7 +50,7 @@ compute_dm = function(model_names, model_dataframes, horizons, orig_data){
     for (i in seq_along(horizons)) {
       h <- horizons[i]
       
-      x <- data.frame(benchmarkp$forecasts)[[i]] #the only thing that changes from quart to month
+      x <- data.frame(benchmarkq$forecasts)[[i]] #the only thing that changes from quart to month
       y <- data.frame(model_df$forecasts)[[i]]
       
       #residual = y - ŷ

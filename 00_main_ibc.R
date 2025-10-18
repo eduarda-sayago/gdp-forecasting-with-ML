@@ -123,10 +123,6 @@ rm(dummies, rawm_ibc_log, logm_results, rawm_stry)
 #=====
 message("Mean")
 
-mean_modelp <- call_models(dataset, 'Mean - PIB_RS', get_mean, "pib_rs") #not saved yet
-# h=1 RMSE: 0.08924119 ; MAE: 0.06789313  
-# h=4 RMSE: 0.08885499 ; MAE: 0.06764367  
-
 mean_model <- call_models(datasetm, 'Mean - IBC-m', get_mean, "ibc_rs")
 # h=1 RMSE: 0.1026092; MAE: 0.06800124  
 # h=12 RMSE: 0.1220261; MAE: 0.08669113  
@@ -137,10 +133,6 @@ mean_model <- call_models(datasetm, 'Mean - IBC-m', get_mean, "ibc_rs")
 
 #=====
 message("SARIMA")
-
-#benchmarkp <- call_models(dataset, 'SARIMA - PIB_RS', get_sarima, "pib_rs")
-# h=1 RMSE: 0.07011117; MAE: 0.04844195; MAPE: 99.58476     
-# h=4 RMSE: 0.07980111; MAE: 0.05570668; MAPE: 127.10611  
 
 #benchmark <- call_models1(datasetm, 'SARIMA - IBC-m', get_sarima, "ibc_rs")
 # h=1  RMSE: 0.06629558; MAE: 0.04880438; MAPE: 1.048171 
@@ -153,10 +145,6 @@ benchmarkw <- call_models1(logw_results, 'SARIMA - IBC-w', get_sarima, "ibc_rs")
 #=====
 message("LASSO")
 
-#lasso_modelp <- call_models(dataset, 'LASSO - PIB_RS', get_lasso, "pib_rs")
-# h=1 RMSE: 0.05920526  ; MAE: 0.04084625; MAPE: 119.5896 
-# h=4 RMSE: 0.05988952  ; MAE: 0.04352576; MAPE: 105.9388 
-
 #lasso_model <- call_models1(datasetm, 'LASSO - IBC-m', get_lasso, "ibc_rs")
 # h=1  RMSE: 0.03649598; MAE: 0.02839302; MAPE: 0.6150090 
 # h=12 RMSE: 0.05989764; MAE: 0.04312109; MAPE: 0.9387088 
@@ -167,10 +155,6 @@ lasso_modelw <- call_models1(logw_results, 'LASSO - IBC-w', get_lasso, "ibc_rs")
 
 #=====
 message("Elastic Net")
-
-#enet_modelp <- call_models(dataset, 'Elastic Net', get_elasticnet, "pib_rs") #not saved
-# h=1 RMSE: 0.05790124 ; MAE: 0.04586020; MAPE:    
-# h=4 RMSE: 0.12473872 ; MAE: 0.09587616; MAPE:
 
 #enet_model <- call_models1(datasetm, 'Elastic Net - IBC-m', get_elasticnet, "ibc_rs")
 # h=1  RMSE: 0.05072413 ; MAE: 0.03893112; MAPE: 0.8390616 
@@ -191,51 +175,39 @@ rf_modelw <- call_models1(logw_results, 'Random Forest - IBC-w', get_rf, "ibc_rs
 # h=1 RMSE: ; MAE:    ; MAPE:
 # h=12 RMSE: ; MAE:    ; MAPE:
 
-#message("Boosting")
-# boost_model <- call_models1(datasetm, 'Boosting', get_boosting, "ibc_rs")
-# # h=1 RMSE: 0.1026092; MAE: 0.06800124 ; MAPE:  1.445637 
-# # h=12 RMSE:0.1002764; MAE: 0.06661304 ; MAPE:  1.417023  
-# boost_wmodel <- call_models1(datasetw, 'Boosting', get_boosting, "ibc_rs")
-# # h=1 RMSE: ; MAE:      
-# # h=4 RMSE: ; MAE:  
-
 # ================================================
 # ---------------Diebold-Mariano test-------------
 # ================================================
 
-yi <- datasetm$`ibc_rs`[181:257]
+ym <- datasetm$`ibc_rs`[181:257]
 dm_tests_ibc <- compute_dm1(model_names = c("LASSO", "Elastic Net", "Random Forest"),
                            model_dataframes = list(lasso_model, enet_model, rf_model),
                            horizons = c(1, 12),
-                           orig_data = yi)
-
-#meandm_test = compute_dmv2()
+                           orig_data = ym)
 
 # ================================================
 # ------Performance evaluation through CSFE-------
 # ================================================
 
-csfem_lasso = csfe(lasso_model, benchmark, yi)
-csfem_enet = csfe(enet_model, benchmark, yi)
-csfem_rf = csfe(rf_model, benchmark, yi)
-#csfem_boosting = csfe(boost_model, benchmark, yi)
+mcsfe_lasso = csfe(lasso_model, benchmark, ym)
+mcsfe_enet = csfe(enet_model, benchmark, ym)
+mcsfe_rf = csfe(rf_model, benchmark, ym)
 
-csfem_lasso <- as.data.frame(csfem_lasso)
-csfem_enet <- as.data.frame(csfem_enet)
-csfem_rf <- as.data.frame(csfem_rf)
-#csfem_boosting <- as.data.frame(csfem_boosting)
+mcsfe_lasso <- as.data.frame(mcsfe_lasso)
+mcsfe_enet <- as.data.frame(mcsfe_enet)
+mcsfe_rf <- as.data.frame(mcsfe_rf)
 
 # ================================================
 # --------------------Graphs----------------------
 # ================================================
 y_axis <- dfdate[181:257]
-CSFE_df <- data.frame(date = y_axis,
-                      lasso_h1 = csfem_lasso$h1,
-                      lasso_h12 = csfem_lasso$h12,
-                      enet_h1 = csfem_enet$h1,
-                      enet_h12 = csfem_enet$h12,
-                      rf_h1 = csfem_rf$h1,
-                      rf_h12 = csfem_rf$h12) 
+csfe_m <- data.frame(date = y_axis,
+                      lasso_h1 = mcsfe_lasso$h1,
+                      lasso_h12 = mcsfe_lasso$h12,
+                      enet_h1 = mcsfe_enet$h1,
+                      enet_h12 = mcsfe_enet$h12,
+                      rf_h1 = mcsfe_rf$h1,
+                      rf_h12 = mcsfe_rf$h12) 
 
 # c("#F57C00", "#1ABC9C", "#1F497D")
 

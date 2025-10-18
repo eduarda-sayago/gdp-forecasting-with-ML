@@ -79,6 +79,33 @@ datasetq$date <- as.Date(datasetq$date, origin = "1970-01-01")
 # ================================================
 
 #Adding dummies
+dummies <- data.frame(matrix(ncol = 0, nrow = nrow(rawq_st)))
+dummies$quarter <- lubridate::quarter(rawq_st$date)
+
+rawq_st$Q2 <- ifelse(dummies$quarter == 2, 1, 0)
+rawq_st$Q3 <- ifelse(dummies$quarter == 3, 1, 0)
+rawq_st$Q4 <- ifelse(dummies$quarter == 4, 1, 0)
+
+rawq_st$d_pandemic <- ifelse(rawq_st$date >= as.Date("2020-03-01") &
+                               rawq_st$date <= as.Date("2020-06-01"), 1, 0)
+rawq_st$d_rsflood <- ifelse(rawq_st$date == as.Date("2024-06-01"), 1, 0)
+rawq_st$d_shift <- ifelse(rawq_st$date < as.Date("2013-03-01"),
+                          seq_len(sum(rawq_st$date < as.Date("2013-03-01"))),0)
+
+
+saveRDS(datasetq, "datasetq.rds")
+rm(data_q, data_m, sw_list, stdata_m, info_stm, stdata_q, info_stq, datamon, dataqrt, quarter_ds, mq_results, dummies)
+
+
+dateq = rawq_st$date
+rawq_st$date <- NULL
+rawq_st[] <- lapply(rawq_st, as.numeric)
+
+# ================================================
+# -----------------3rd try - raw gdp -------------- - raw_gdp made by mean, no logs, no dflood
+# ================================================
+raw_gdp <- merge(rawq_gdp, rawm_gdp, by = "date")
+
 dummies <- data.frame(matrix(ncol = 0, nrow = nrow(raw_gdp)))
 dummies$quarter <- lubridate::quarter(raw_gdp$date)
 
@@ -88,83 +115,31 @@ raw_gdp$Q4 <- ifelse(dummies$quarter == 4, 1, 0)
 
 raw_gdp$d_pandemic <- ifelse(raw_gdp$date >= as.Date("2020-03-01") &
                                raw_gdp$date <= as.Date("2020-06-01"), 1, 0)
-raw_gdp$d_rsflood <- ifelse(raw_gdp$date == as.Date("2024-06-01"), 1, 0)
+#raw_gdp$d_rsflood <- ifelse(raw_gdp$date == as.Date("2024-06-01"), 1, 0)
 raw_gdp$d_shift <- ifelse(raw_gdp$date < as.Date("2013-03-01"),
                           seq_len(sum(raw_gdp$date < as.Date("2013-03-01"))),0)
-
-
-saveRDS(datasetq, "datasetq.rds")
-rm(data_q, data_m, sw_list, stdata_m, info_stm, stdata_q, info_stq, datamon, dataqrt, quarter_ds, mq_results, dummies)
-
-
 dateq = raw_gdp$date
 raw_gdp$date <- NULL
 raw_gdp[] <- lapply(raw_gdp, as.numeric)
 
-# ================================================
-# -----------------Forecasting--------------------
-# ================================================
+benchmark3q <- call_models(raw_gdp, 'RawqMnfd - SARIMA', get_sarima, "pib_rs")
+# h=1 RMSE: ; MAE: ; MAPE: 
+# h=4 RMSE: ; MAE: ; MAPE:  
 
-#=====
-message("Mean")
+lasso_model3q <- call_models(raw_gdp, 'RawqMnfd - LASSO', get_lasso, "pib_rs")
+# h=1 RMSE: ; MAE: ; MAPE: 
+# h=4 RMSE: ; MAE: ; MAPE: 
 
-mean_modelq <- call_models(datasetq, 'Mean', get_mean, "pib_rs")
-# h=1 RMSE: 0.08924119; MAE: 0.06789313 
-# h=4 RMSE: 0.08880100; MAE: 0.06757122
+enet_model3q <- call_models(raw_gdp, 'RawqMnfd - Elastic Net', get_elasticnet, "pib_rs")
+# h=1 RMSE: ; MAE: ; MAPE: 
+# h=4 RMSE: ; MAE: ; MAPE: 
 
-#=====
-message("SARIMA")
-
-benchmarkq <- call_models(raw_gdp, 'q - SARIMA', get_sarima, "pib_rs")
-# h=1 RMSE: 0.07011117; MAE: 0.04844195; MAPE: 99.58476
-# h=4 RMSE: 0.07980111; MAE: 0.05570668; MAPE: 127.10611 
-
-# test <- as.data.frame(benchmark$forecasts)
-# test <- cbind(date[65:92], dataset$pib_rs[65:92],test)
-# library(writexl)
-# write_xlsx(test, "sarimaresults.xlsx")
-
-#=====
-message("LASSO")
-
-lasso_modelq <- call_models(datasetq, 'q - LASSO', get_lasso, "pib_rs")
-# h=1 RMSE: 0.06341426  ; MAE: 0.04486765 ; MAPE: 127.1816  
-# h=4 RMSE: 0.06132939  ; MAE: 0.04509913 ; MAPE: 113.4071  
-
-rawq_st$d <- NULL
-
-lasso_modlq <- call_models(rawq_st, 'nother - LASSO', get_lasso, "pib_rs")
-# h=1 RMSE: 5.361284  ; MAE: 4.273517  ; MAPE: 3.189909   
-# h=4 RMSE: 7.646238   ; MAE: 5.868104  ; MAPE: 4.320331   
-
-# h=1 RMSE: 0.07038481   ; MAE: 0.04795207   ; MAPE: 137.1094    
-# h=4 RMSE: 0.05648580    ; MAE: 0.04192961   ; MAPE: 106.4342    
+#rf_modelq <- call_models(raw_gdp, 'q - Random Forest', get_rf, "pib_rs")
+# h=1 RMSE: ; MAE: ; MAPE: 
+# h=4 RMSE: ; MAE: ; MAPE: 
 
 
-#lasso_modeld <- call_models(dataset, 'LASSOd', get_lasso, "pib_rs")
-# h=1 RMSE: 0.05630044; MAE: 0.03681486; MAPE: 97.17642
-# h=4 RMSE: 0.06074664; MAE: 0.04515107; MAPE: 102.24471  
 
-#=====
-message("Elastic Net")
-
-enet_modelq <- call_models(datasetq, 'q - Elastic Net', get_elasticnet, "pib_rs")
-# h=1 RMSE: 0.05440103  ; MAE: 0.04112094; MAPE: 91.74626 
-# h=4 RMSE: 0.05253469  ; MAE: 0.03919072 ; MAPE: 85.84087 
-
-#=====
-message("Random Forest")
-
-rf_modelq <- call_models(datasetq, 'q - Random Forest', get_rf, "pib_rs")
-# h=1 RMSE: 0.05637370 ; MAE: 0.04002083 ; MAPE: 92.02282 
-# h=4 RMSE: 0.05071925 ; MAE: 0.03560388 ; MAPE: 84.35485
-
-#=====
-# message("Boosting")
-# 
-# boost_modelp <- call_models(dataset, 'Boosting', get_boosting, "pib_rs")
-# h=1 RMSE: 0.05718182 ; MAE: 0.03720618 ; MAPE: 101.8835 
-# h=4 RMSE: 0.06833421 ; MAE: 0.05230112 ; MAPE: 118.3273 
 
 # ================================================
 # ---------Graphs with original series------------

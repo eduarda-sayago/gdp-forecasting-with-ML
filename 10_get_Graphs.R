@@ -60,10 +60,10 @@ ggsave("Plots/IBC_plot.png", p_ibc, width = 8, height = 2, dpi = 300)
 rm(dfpib, dfibc, p_gdp, p_ibc)
 
 # ================================================
-# ----------------------CSFE----------------------
+# ----------------CSFE - Monthly------------------
 # ================================================
 
-CSFE_long <- CSFE_df %>%
+CSFE_m <- csfe_m %>%
   pivot_longer(
     cols = -date,
     names_to = c("model", "horizon"),
@@ -76,7 +76,7 @@ CSFE_long <- CSFE_df %>%
   )
 
 # -monthly--------------------h1
-csfe_mh1 <- CSFE_long %>%
+csfe_mh1 <- CSFE_m %>%
   ggplot(aes(x=date, y= csfe_h1, color = model)) +
   geom_line(linewidth=0.8) +
   geom_hline(yintercept = 0, color = "black", linetype = "dashed") +
@@ -95,7 +95,7 @@ csfe_mh1 <- CSFE_long %>%
   theme_bw(base_size = 16, base_family = "EB Garamond")
 
 # -monthly--------------------h12
-csfe_mh12 <-CSFE_long %>%
+csfe_mh12 <-CSFE_m %>%
   ggplot(aes(x=date, y= csfe_h12, color = model)) +
   geom_line(linewidth=0.8) +
   geom_hline(yintercept = 0, color = "black", linetype = "dashed") +
@@ -123,3 +123,20 @@ month_CSFE <- csfe_mh1 + csfe_mh12 + plot_layout(ncol = 2) +
 ggsave("plot_month_CSFE.pdf", combined, width = 10, height = 4)
 
 ggsave("mCSFE_plot.png", p_gdp, width = 8, height = 2, dpi = 300)
+
+# ================================================
+# ---------------CSFE - Quarterly-----------------
+# ================================================
+
+CSFE_q <- csfe_q %>%
+  pivot_longer(
+    cols = -date,
+    names_to = c("model", "horizon"),
+    names_sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = horizon,
+    values_from = value,
+    names_prefix = "csfe_"
+  )
+

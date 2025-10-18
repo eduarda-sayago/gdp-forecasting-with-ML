@@ -20,7 +20,7 @@ f_csfe <- function(x, y_bench, y_real) {
   return(result)
 }
 
-csfe = function(model, benchmark, y_real){
+csfe = function(model, benchmarkq, y_real){
   
   #' Calcula CSFE para Diferentes Horizontes
   #'
@@ -37,10 +37,10 @@ csfe = function(model, benchmark, y_real){
   #' print(csfe_results)
   #'
   
-  h1 = f_csfe(model$forecast[,1], benchmark$forecasts[,1], y_real = y_real)
-  h12 = f_csfe(model$forecast[,2], benchmark$forecasts[,2], y_real = y_real)
+  h1 = f_csfe(model$forecast[,1], benchmarkq$forecasts[,1], y_real = y_real)
+  h4 = f_csfe(model$forecast[,2], benchmarkq$forecasts[,2], y_real = y_real)
   
-  cbind(h1, h12)
+  cbind(h1, h4)
   
 }
 
@@ -62,8 +62,8 @@ csfe1 = function(model, benchmark, y_real){
   #'
   
   h1 = f_csfe(model$forecast[,1], benchmark$forecasts[,1], y_real = y_real)
-  h4 = f_csfe(model$forecast[,2], benchmark$forecasts[,2], y_real = y_real)
+  h12 = f_csfe(model$forecast[,2], benchmark$forecasts[,2], y_real = y_real)
   
-  cbind(h1, h4)
+  cbind(h1, h12)
   
 }

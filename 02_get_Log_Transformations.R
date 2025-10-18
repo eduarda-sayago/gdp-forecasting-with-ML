@@ -121,3 +121,4 @@ get_logs1 <- function(df) {
   
   return(list(results = as.data.frame(results), type_df = type_df))
 }
+
