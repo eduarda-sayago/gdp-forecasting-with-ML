@@ -94,10 +94,10 @@ logw_results$M10 <- ifelse(dummies$month == 10, 1, 0)
 logw_results$M11 <- ifelse(dummies$month == 11, 1, 0)
 logw_results$M12 <- ifelse(dummies$month == 12, 1, 0)
 logw_results$d_pandemic <- ifelse(logw_results$date >= as.Date("2020-01-01") &
-                               logw_results$date <= as.Date("2020-10-01"), 1, 0)
+                                    logw_results$date <= as.Date("2020-10-01"), 1, 0)
 #logw_results$d_rsflood <- ifelse(logw_results$date == as.Date("2024-06-01"), 1, 0)
 logw_results$d_shift <- ifelse(logw_results$date < as.Date("2013-01-01"), 
-                           seq_len(sum(logw_results$date < as.Date("2013-01-01"))),0)
+                               seq_len(sum(logw_results$date < as.Date("2013-01-01"))),0)
 
 # Adding dummies in datasetw
 # ...
@@ -123,9 +123,7 @@ rm(dummies, rawm_ibc_log, logm_results, rawm_stry)
 # logm = old log
 # logw = new log
 # add all dummies excpt dflood cause fuck that sht
-rawm_ibc_log <- get_logs(rawm_ibc)
-logm_results <- do.call(cbind, rawm_ibc_log$results) %>% as.data.frame()
-logm_results$date <- as.Date(logm_results$date, origin = "1970-01-01")
+
 
 dummies <- data.frame(matrix(ncol = 0, nrow = nrow(logm_results)))
 dummies$month <- lubridate::month(logm_results$date)
@@ -161,7 +159,7 @@ enet_model1w <- call_models1(logm_results, 'Logmold - Elastic Net', get_elasticn
 # h=1  RMSE: ; MAE:    ; MAPE:
 # h=12 RMSE: ; MAE:    ; MAPE:
 
-rf_modelw <- call_models1(logm_results, 'Logmold Random Forest - IBC-w', get_rf, "ibc_rs")
+rf_model1w <- call_models1(logm_results, 'Logmold Random Forest - IBC-w', get_rf, "ibc_rs")
 # h=1  RMSE: ; MAE:    ; MAPE:
 # h=12 RMSE: ; MAE:    ; MAPE:
 

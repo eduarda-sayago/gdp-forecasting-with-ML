@@ -37,6 +37,8 @@ compute_dm = function(model_names, model_dataframes, horizons, orig_data){
   #' @examples
   #' dm_results <- compute_dm()
   
+  library(forecast)
+  
   pvalues <- matrix(nrow = length(model_names), ncol = length(horizons))
   results <- list()
   
@@ -94,6 +96,8 @@ compute_dm1 = function(model_names, model_dataframes, horizons, orig_data){
   #'
   #' @examples
   #' dm_results <- compute_dm()
+  
+  library(forecast)
   
   pvalues <- matrix(nrow = length(model_names), ncol = length(horizons))
   results <- list()

@@ -1,10 +1,6 @@
 # ================================================
-# ---------------------Main-----------------------
+# ---------Main - Monthly Analysis - IBCR-RS------
 # ================================================
-
-#to do after: unify labels as "m" and "q" at beginning
-#transf graphs in function
-#maybe "if dont have it install packages" function
 
 library(dplyr)
 library(lubridate)
@@ -14,17 +10,13 @@ library(lubridate)
 # ================================================
 
 source("01_get_Data.R")
-source("02_get_Log_Transformations.R")
-source("03_get_Stationarity.R")
+source("03_get_Log_Transformations.R")
 source("04_get_Data_Prep.R")
 source("05_get_Rolling_Window.R")
 source("06_get_Models.R")
 source("07_call_Model.R")
 source("08_Compute_DM.R")
 source("09_Performance_csfe.R")
-
-#what to keep
-#rm(list = setdiff(ls(), c("",)))
 
 # ================================================
 # ---------------Calling Dataset------------------
@@ -35,151 +27,90 @@ message("[1] Loading data")
 rawm_ibc <- readRDS("rawM_ibc.rds")
 
 # ================================================
-# --------Preprocessing for Stationarity----------
+# -----------------Preprocessing------------------
 # ================================================
-message("[2] Applying log transforms")
+message("[2] Applying log transformation")
 
 rawm_ibc_log <- get_logs(rawm_ibc)
 type_dfm <- rawm_ibc_log$type_df
-logm_results <- do.call(cbind, rawm_ibc_log$results) %>% as.data.frame()
-
-# santavpalmar insolacaototal - possibly contains mistakes in data
-
-raww_ibc_log <- get_logs(rawm_ibc)
-type_dfw <- raww_ibc_log$type_df
-logw_results <- do.call(cbind, raww_ibc_log$results) %>% as.data.frame()
+datasetm <- do.call(cbind, rawm_ibc_log$results) %>% as.data.frame()
+datasetm$date <- as.Date(datasetm$date, origin = "1970-01-01")
 
 # ================================================
-# --------------Stationarity tests----------------
+# --------------Addition of dummies---------------
 # ================================================
+message("[3] Adding dummies to dataset")
 
-message("[3] Applying ADF test and differencing")
+dummies <- data.frame(matrix(ncol = 0, nrow = nrow(datasetm)))
+dummies$month <- lubridate::month(datasetm$date)
 
-rawm_stry <- get_stationarity(logm_results, type_df = type_dfm)
-raww_stry <- get_stationarity(logw_results, type_df = type_dfw)
+datasetm$M2 <- ifelse(dummies$month == 2, 1, 0)
+datasetm$M3 <- ifelse(dummies$month == 3, 1, 0)
+datasetm$M4 <- ifelse(dummies$month == 4, 1, 0)
+datasetm$M5 <- ifelse(dummies$month == 5, 1, 0)
+datasetm$M6 <- ifelse(dummies$month == 6, 1, 0)
+datasetm$M7 <- ifelse(dummies$month == 7, 1, 0)
+datasetm$M8 <- ifelse(dummies$month == 8, 1, 0)
+datasetm$M9 <- ifelse(dummies$month == 9, 1, 0)
+datasetm$M10 <- ifelse(dummies$month == 10, 1, 0)
+datasetm$M11 <- ifelse(dummies$month == 11, 1, 0)
+datasetm$M12 <- ifelse(dummies$month == 12, 1, 0)
+datasetm$d_pandemic <- ifelse(datasetm$date >= as.Date("2020-01-01") &
+                                    datasetm$date <= as.Date("2020-10-01"), 1, 0)
+datasetm$d_shift <- ifelse(datasetm$date < as.Date("2013-01-01"), 
+                               seq_len(sum(datasetm$date < as.Date("2013-01-01"))),0)
 
-type_dfm <- rawm_stry$type_df
-rawm_stry <- as.data.frame(rawm_stry$df)
+saveRDS(datasetm, "Dataset_MonthlyAnalysis.rds")
 
-type_dfw <- raww_stry$type_df
-raww_stry <- as.data.frame(raww_stry$df)
-
-message("[4] Applying seasonal differencing")
-
-datasetm <- get_seas_stationarity(logm_results, type_df = type_dfm, freq = 12)
-datasetw <- get_seas_stationarity(raww_stry, type_df = type_dfw, freq = 12)
-
-type_dfm <- datasetm$type_df
-datasetm <- as.data.frame(datasetm$df)
-
-type_dfw <- datasetw$type_df
-datasetw <- as.data.frame(datasetw$df)
-
-# Adding dummies in datasetm
-
-logw_results$date <- as.Date(logw_results$date, origin = "1970-01-01")
-
-dummies <- data.frame(matrix(ncol = 0, nrow = nrow(logw_results)))
-dummies$month <- lubridate::month(logw_results$date)
-
-logw_results$M2 <- ifelse(dummies$month == 2, 1, 0)
-logw_results$M3 <- ifelse(dummies$month == 3, 1, 0)
-logw_results$M4 <- ifelse(dummies$month == 4, 1, 0)
-logw_results$M5 <- ifelse(dummies$month == 5, 1, 0)
-logw_results$M6 <- ifelse(dummies$month == 6, 1, 0)
-logw_results$M7 <- ifelse(dummies$month == 7, 1, 0)
-logw_results$M8 <- ifelse(dummies$month == 8, 1, 0)
-logw_results$M9 <- ifelse(dummies$month == 9, 1, 0)
-logw_results$M10 <- ifelse(dummies$month == 10, 1, 0)
-logw_results$M11 <- ifelse(dummies$month == 11, 1, 0)
-logw_results$M12 <- ifelse(dummies$month == 12, 1, 0)
-logw_results$d_pandemic <- ifelse(logw_results$date >= as.Date("2020-01-01") &
-                               logw_results$date <= as.Date("2020-10-01"), 1, 0)
-#logw_results$d_rsflood <- ifelse(logw_results$date == as.Date("2024-06-01"), 1, 0)
-logw_results$d_shift <- ifelse(logw_results$date < as.Date("2013-01-01"), 
-                           seq_len(sum(logw_results$date < as.Date("2013-01-01"))),0)
-
-# Adding dummies in datasetw
-# ...
-#saveRDS(datasetm,"datasetm.rds")
-
-# Storing and removing Date column
-dfdate = datasetm$date
-dfdate = as.Date(date, origin = "1970-01-01")
-
+datem = datasetm$date
 datasetm$date <- NULL
 datasetm[] <- lapply(datasetm, as.numeric)
 
-dfwdate = logw_results$date
-logw_results$date <- NULL
-logw_results[] <- lapply(logw_results, as.numeric)
+rm(dummies, rawm_ibc_log)
 
-rm(dummies, rawm_ibc_log, logm_results, rawm_stry)
-#rm(raww_ibc_log, logw_results, raww_stry)
 # ================================================
 # -----------------Forecasting--------------------
 # ================================================
 
 #=====
-message("Mean")
+#message("[3] Calculating Mean model")
 
-mean_model <- call_models(datasetm, 'Mean - IBC-m', get_mean, "ibc_rs")
-# h=1 RMSE: 0.1026092; MAE: 0.06800124  
-# h=12 RMSE: 0.1220261; MAE: 0.08669113  
-
-#mean_modelw <- call_models(datasetw, 'Mean - IBC-w', get_mean, "ibc_rs")
-# h=1 RMSE: 0.1026092  ; MAE:  0.06800124 
-# h=12 RMSE: 0.1220261 ; MAE:  0.08669113 
+#mean_model <- call_models(datasetm, 'Mean', get_mean, "ibc_rs")
 
 #=====
-message("SARIMA")
+message("[4] Calculating Benchmark (SARIMA) model")
 
-#benchmark <- call_models1(datasetm, 'SARIMA - IBC-m', get_sarima, "ibc_rs")
-# h=1  RMSE: 0.06629558; MAE: 0.04880438; MAPE: 1.048171 
-# h=12 RMSE: 0.09837429; MAE: 0.07007968; MAPE: 1.501778  
-
-benchmarkw <- call_models1(logw_results, 'SARIMA - IBC-w', get_sarima, "ibc_rs")
-# h=1  RMSE: 0.06738957  ; MAE: 0.05007342 ; MAPE: 1.076639   
-# h=12 RMSE: 0.09635736  ; MAE: 0.06892825  ; MAPE: 1.478484    
+benchmark <- call_models1(datasetm, 'SARIMA', get_sarima, "ibc_rs")
+# h=1  RMSE: 0.06738957; MAE: 0.05007342; MAPE: 1.076639  
+# h=12 RMSE: 0.09635736; MAE: 0.06892825; MAPE: 1.478484 
 
 #=====
-message("LASSO")
+message("[5] Calculating LASSO model")
 
-#lasso_model <- call_models1(datasetm, 'LASSO - IBC-m', get_lasso, "ibc_rs")
-# h=1  RMSE: 0.03649598; MAE: 0.02839302; MAPE: 0.6150090 
-# h=12 RMSE: 0.05989764; MAE: 0.04312109; MAPE: 0.9387088 
-
-lasso_modelw <- call_models1(logw_results, 'LASSO - IBC-w', get_lasso, "ibc_rs")
-# h=1  RMSE: 0.03545680  ; MAE: 0.02732362 ; MAPE: 0.5921543  
-# h=12 RMSE: 0.05768894 ; MAE: 0.04170441 ; MAPE: 0.9073074  
+lasso_model <- call_models1(datasetm, 'LASSO', get_lasso, "ibc_rs")
+# h=1  RMSE: 0.04931252; MAE: 0.02732362; MAPE: 0.5921543  
+# h=12 RMSE: 0.05768894; MAE: 0.04170441; MAPE: 0.9073074 
 
 #=====
-message("Elastic Net")
+message("[6] Calculating Elastic Net model")
 
-#enet_model <- call_models1(datasetm, 'Elastic Net - IBC-m', get_elasticnet, "ibc_rs")
-# h=1  RMSE: 0.05072413 ; MAE: 0.03893112; MAPE: 0.8390616 
-# h=12 RMSE: 0.06412265 ; MAE: 0.05130680; MAPE: 1.1120433 
-
-enet_modelw <- call_models1(logw_results, 'Elastic Net - IBC-w', get_elasticnet, "ibc_rs")
-# h=1  RMSE: 0.04931252 ; MAE: 0.03758021 ; MAPE: 0.8103573  
-# h=12 RMSE: 0.06213666 ; MAE: 0.04957504 ; MAPE: 1.0750708  
+enet_model <- call_models1(datasetm, 'Elastic Net', get_elasticnet, "ibc_rs")
+# h=1  RMSE: 0.05072413; MAE: 0.03758021; MAPE: 0.8103573  
+# h=12 RMSE: 0.06213666; MAE: 0.04957504; MAPE: 1.0750708 
 
 #=====
-message("Random Forest")
+message("[7] Calculating Random Forest model")
 
-#rf_model <- call_models1(datasetm, 'Random Forest - IBC-m', get_rf, "ibc_rs")
-# h=1 RMSE: 0.05013537 ; MAE: 0.03508641; MAPE: 0.7569036 
-# h=12 RMSE: 0.05428087 ; MAE:0.04022022; MAPE: 0.8674320 
-
-rf_modelw <- call_models1(logw_results, 'Random Forest - IBC-w', get_rf, "ibc_rs")
-# h=1 RMSE: ; MAE:    ; MAPE:
-# h=12 RMSE: ; MAE:    ; MAPE:
+rf_model <- call_models1(datasetm, 'Random Forest', get_rf, "ibc_rs")
+# h=1  RMSE: 0.04854916; MAE: 0.03360036; MAPE: 0.7254949  
+# h=12 RMSE: 0.05374739; MAE: 0.03919684; MAPE: 0.8461323 
 
 # ================================================
 # ---------------Diebold-Mariano test-------------
 # ================================================
+message("[8] Computing Diebold-Mariano test")
 
-ym <- datasetm$`ibc_rs`[181:257]
+ym <- datasetm$`ibc_rs`[189:269]
 dm_tests_ibc <- compute_dm1(model_names = c("LASSO", "Elastic Net", "Random Forest"),
                            model_dataframes = list(lasso_model, enet_model, rf_model),
                            horizons = c(1, 12),
@@ -188,6 +119,7 @@ dm_tests_ibc <- compute_dm1(model_names = c("LASSO", "Elastic Net", "Random Fore
 # ================================================
 # ------Performance evaluation through CSFE-------
 # ================================================
+message("[9] Evaluating through CSFE (Welch and Goyal, 2008)")
 
 mcsfe_lasso = csfe(lasso_model, benchmark, ym)
 mcsfe_enet = csfe(enet_model, benchmark, ym)
@@ -198,9 +130,11 @@ mcsfe_enet <- as.data.frame(mcsfe_enet)
 mcsfe_rf <- as.data.frame(mcsfe_rf)
 
 # ================================================
-# --------------------Graphs----------------------
+# -----------------DF - Graphs--------------------
 # ================================================
-y_axis <- dfdate[181:257]
+message("[10] Collecting results for graph building (see 10_get_Graphs.R)")
+
+y_axis <- datem[189:269]
 csfe_m <- data.frame(date = y_axis,
                       lasso_h1 = mcsfe_lasso$h1,
                       lasso_h12 = mcsfe_lasso$h12,
@@ -209,6 +143,23 @@ csfe_m <- data.frame(date = y_axis,
                       rf_h1 = mcsfe_rf$h1,
                       rf_h12 = mcsfe_rf$h12) 
 
+forecast_bench <- as.data.frame(benchmark$forecasts)
+forecast_lasso <- as.data.frame(lasso_model$forecasts)
+forecast_enet <- as.data.frame(enet_model$forecasts)
+forecast_rf <- as.data.frame(rf_model$forecasts)
+
+results_m <- data.frame(date = y_axis,
+                        IBCR_RS = ym,
+                        benchmark_h1 = forecast_bench$init,
+                        benchmark_h12 = forecast_bench$V2,
+                        lasso_h1 = forecast_lasso$init,
+                        lasso_h12 = forecast_lasso$V2,
+                        enet_h1 = forecast_enet$init,
+                        enet_h12 = forecast_enet$V2,
+                        rf_h1 = forecast_rf$init,
+                        rf_h12 = forecast_rf$V2)
+
 # c("#F57C00", "#1ABC9C", "#1F497D")
 
+message("Process finished. Thank you!")
 # ================================================

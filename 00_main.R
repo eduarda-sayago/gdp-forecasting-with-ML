@@ -1,5 +1,5 @@
 # ================================================
-# ---------------------Main-----------------------
+# ---------Main - Quarterly Analysis - GDP-RS-----
 # ================================================
 
 library(dplyr)
@@ -10,9 +10,8 @@ library(lubridate)
 # ================================================
 
 source("01_get_Data.R")
-source("03_get_Quarterly_Data.R")
-source("02_get_Log_Transformations.R")
-source("03_get_Stationarity.R")
+source("02_get_Quarterly_Data.R")
+source("03_get_Log_Transformations.R")
 source("04_get_Data_Prep.R")
 source("05_get_Rolling_Window.R")
 source("06_get_Models.R")

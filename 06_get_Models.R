@@ -422,6 +422,7 @@ get_rf <- function(ind, df, variable, horizon, n_lags) {
   #' @examples
   #' results <- get_rf(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
   
+  library(dplyr)
   library(caret)
   library(randomForest)
   
