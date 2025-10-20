@@ -24,7 +24,8 @@ source("09_Performance_csfe.R")
 # ================================================
 message("[1] Loading data")
 
-datasetq <- readRDS("dataset_gdp.rds") # Or run line 30:68
+datasetq <- readRDS("dataset_gdp.rds") # And skip to --Forecasting--
+                                       # Or run lines 30:68
 
 rawm_gdp <- readRDS("Data/base_NSA.rds")
 rawq_gdp <- read.csv2("Data/quarterly_NSA.csv")
@@ -32,21 +33,20 @@ rawq_gdp <- read.csv2("Data/quarterly_NSA.csv")
 # ================================================
 # --------Transforming to Quarterly data----------
 # ================================================
-message("[2] Aggregating monthly series to quarterly")
+message("[2] Aggregating monthly series to quarterly and merging datasets")
 
 rawm_gdp$date <- as.Date(rawm_gdp$date)
 rawm_gdp <- to_quarterly(rawm_gdp, agg = "mean")
 rawm_gdp <- rawm_gdp[1:93,]
 
-message("[3] Merging datasets")
 rawq_gdp$date <- as.Date(rawq_gdp$date)
 datasetq <- merge(rawq_gdp, rawm_gdp, by = "date")
 
 # ================================================
-# ------------------Checkpoint--------------------
+# -----------------Preprocessing------------------
 # ================================================
+message("[3] Adding dummies to dataset")
 
-#Adding dummies
 dummies <- data.frame(matrix(ncol = 0, nrow = nrow(datasetq)))
 dummies$quarter <- lubridate::quarter(datasetq$date)
 
@@ -58,46 +58,47 @@ datasetq$d_pandemic <- ifelse(datasetq$date >= as.Date("2020-03-01") &
                                datasetq$date <= as.Date("2020-06-01"), 1, 0)
 datasetq$d_shift <- ifelse(datasetq$date < as.Date("2013-03-01"),
                           seq_len(sum(datasetq$date < as.Date("2013-03-01"))),0)
-dateg = datasetq$date
+
+#saveRDS(datasetq, "dataset_gdp.rds")
+
+dateq = datasetq$date
 datasetq$date <- NULL
 datasetq[] <- lapply(datasetq, as.numeric)
 
 rm(rawm_gdp, rawq_gdp, dummies)
-
-#saveRDS(datasetq, "dataset_gdp.rds")
 
 # ================================================
 # -----------------Forecasting--------------------
 # ================================================
 
 #=====
-# message("Mean")
+#message("[3] Calculating Mean model")
 
-# mean_model <- call_models(datasetq, 'Mean', get_mean, "pib_rs")
+#mean_model <- call_models(datasetq, 'Mean', get_mean, "pib_rs")
 
 #=====
-message("SARIMA")
+message("[4] Calculating Benchmark (SARIMA) model")
 
 benchmarkq <- call_models(datasetq, 'SARIMA', get_sarima, "pib_rs")
 # h=1 RMSE: 10.13834; MAE: 7.387079; MAPE: 5.463893
 # h=4 RMSE: 11.06123; MAE: 7.043361; MAPE: 5.09347
 
 #=====
-message("LASSO")
+message("[5] Calculating LASSO model")
 
-lasso_modelq <- call_models(dataset, 'LASSO', get_lasso, "pib_rs")
+lasso_modelq <- call_models(datasetq, 'LASSO', get_lasso, "pib_rs")
 # h=1 RMSE: 5.361284 ; MAE: 4.273517; MAPE: 3.189909 
 # h=4 RMSE: 7.646238 ; MAE: 5.868104; MAPE: 4.320331    
 
 #=====
-message("Elastic Net")
+message("[6] Calculating Elastic Net model")
 
 enet_modelq <- call_models(datasetq, 'Elastic Net', get_elasticnet, "pib_rs")
 # h=1 RMSE: 5.970406  ; MAE: 4.545163; MAPE: 3.388999 
 # h=4 RMSE: 7.632532  ; MAE: 5.898247 ; MAPE: 4.343466
 
 #=====
-message("Random Forest")
+message("[7] Calculating Random Forest model")
 
 rf_modelq <- call_models(datasetq, 'Random Forest', get_rf, "pib_rs")
 # h=1 RMSE: 7.479729  ; MAE: 4.601721  ; MAPE: 3.325140  
@@ -106,8 +107,9 @@ rf_modelq <- call_models(datasetq, 'Random Forest', get_rf, "pib_rs")
 # ================================================
 # ---------------Diebold-Mariano test-------------
 # ================================================
+message("[8] Computing Diebold-Mariano test")
 
-yq <- datasetq$`pib_rs`[65:92] #revise
+yq <- datasetq$`pib_rs`[66:93]
 dm_tests <- compute_dm(model_names = c("LASSO", "Elastic Net", "Random Forest"),
                            model_dataframes = list(lasso_modelq, enet_modelq, rf_modelq),
                            horizons = c(1, 4),
@@ -116,6 +118,7 @@ dm_tests <- compute_dm(model_names = c("LASSO", "Elastic Net", "Random Forest"),
 # ================================================
 # ------Performance evaluation through CSFE-------
 # ================================================
+message("[9] Evaluating through CSFE (Welch and Goyal, 2008)")
 
 qcsfe_lasso = csfe(lasso_modelq, benchmarkq, yq)
 qcsfe_enet = csfe(enet_modelq, benchmarkq, yq)
@@ -128,7 +131,9 @@ qcsfe_rf <- as.data.frame(qcsfe_rf)
 # ================================================
 # --------------------Graphs----------------------
 # ================================================
-y_ax <- date[65:92]
+message("[10] Collecting results for graph building (see 10_get_Graphs.R)")
+
+y_ax <- dateq[66:93]
 csfe_q <- data.frame(date = y_ax,
                       lasso_h1 = qcsfe_lasso$h1,
                       lasso_h12 = qcsfe_lasso$h4,
@@ -137,6 +142,23 @@ csfe_q <- data.frame(date = y_ax,
                       rf_h1 = qcsfe_rf$h1,
                       rf_h12 = qcsfe_rf$h4) 
 
+forecastq_bench <- as.data.frame(benchmarkq$forecasts)
+forecastq_lasso <- as.data.frame(lasso_modelq$forecasts)
+forecastq_enet <- as.data.frame(enet_modelq$forecasts)
+forecastq_rf <- as.data.frame(rf_modelq$forecasts)
+
+results_q <- data.frame(date = y_ax,
+                        GDP_RS = yq,
+                        benchmark_h1 = forecastq_bench$init,
+                        benchmark_h4 = forecastq_bench$V2,
+                        lasso_h1 = forecastq_lasso$init,
+                        lasso_h4 = forecastq_lasso$V2,
+                        enet_h1 = forecastq_enet$init,
+                        enet_h4 = forecastq_enet$V2,
+                        rf_h1 = forecastq_rf$init,
+                        rf_h4 = forecastq_rf$V2)
+
 # c("#F57C00", "#1ABC9C", "#1F497D")
 
+message("Process finished. Thank you!")
 # ================================================

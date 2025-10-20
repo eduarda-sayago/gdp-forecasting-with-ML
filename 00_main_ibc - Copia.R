@@ -23,8 +23,10 @@ source("07_call_Model.R")
 source("08_Compute_DM.R")
 source("09_Performance_csfe.R")
 
-#what to keep
-#rm(list = setdiff(ls(), c("",)))
+#WHAT TO KEEP:
+rm(list = setdiff(ls(), c("benchmark", "benchmarkq", "enet_model", "enet_modelq", "lasso_model", "lasso_modelq", "rf_model", "rf_modelq",
+                          "datasetm", "datasetq", "dm_tests", "dm_tests_ibc", "y_ax", "y_axis", "dateq", "datem", "csfe_q", "csfe_m",
+                          "results_q", "results_m", "type_dfm")))
 
 # ================================================
 # ---------------Calling Dataset------------------
