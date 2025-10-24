@@ -25,7 +25,7 @@ source("09_Performance_csfe.R")
 
 #WHAT TO KEEP:
 rm(list = setdiff(ls(), c("benchmark", "benchmarkq", "enet_model", "enet_modelq", "lasso_model", "lasso_modelq", "rf_model", "rf_modelq",
-                          "datasetm", "datasetq", "dm_tests", "dm_tests_ibc", "y_ax", "y_axis", "dateq", "datem", "csfe_q", "csfe_m",
+                          "datasetm", "datasetq", "dm_tests", "dm_tests_ibc", "y_ax", "y_axis", "ym", "yq","dateq", "datem", "csfe_q", "csfe_m",
                           "results_q", "results_m", "type_dfm")))
 
 # ================================================

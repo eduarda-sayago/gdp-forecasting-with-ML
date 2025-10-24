@@ -61,6 +61,7 @@ datasetm$d_shift <- ifelse(datasetm$date < as.Date("2013-01-01"),
                                seq_len(sum(datasetm$date < as.Date("2013-01-01"))),0)
 
 saveRDS(datasetm, "Dataset_MonthlyAnalysis.rds")
+datasetm <- readRDS("Dataset_MonthlyAnalysis.rds")
 
 datem = datasetm$date
 datasetm$date <- NULL
@@ -121,9 +122,9 @@ dm_tests_ibc <- compute_dm1(model_names = c("LASSO", "Elastic Net", "Random Fore
 # ================================================
 message("[9] Evaluating through CSFE (Welch and Goyal, 2008)")
 
-mcsfe_lasso = csfe(lasso_model, benchmark, ym)
-mcsfe_enet = csfe(enet_model, benchmark, ym)
-mcsfe_rf = csfe(rf_model, benchmark, ym)
+mcsfe_lasso = csfe1(lasso_model, benchmark, ym)
+mcsfe_enet = csfe1(enet_model, benchmark, ym)
+mcsfe_rf = csfe1(rf_model, benchmark, ym)
 
 mcsfe_lasso <- as.data.frame(mcsfe_lasso)
 mcsfe_enet <- as.data.frame(mcsfe_enet)
