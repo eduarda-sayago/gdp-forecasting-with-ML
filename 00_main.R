@@ -136,11 +136,11 @@ message("[10] Collecting results for graph building (see 10_get_Graphs.R)")
 y_ax <- dateq[66:93]
 csfe_q <- data.frame(date = y_ax,
                       lasso_h1 = qcsfe_lasso$h1,
-                      lasso_h12 = qcsfe_lasso$h4,
+                      lasso_h4 = qcsfe_lasso$h4,
                       enet_h1 = qcsfe_enet$h1,
-                      enet_h12 = qcsfe_enet$h4,
+                      enet_h4 = qcsfe_enet$h4,
                       rf_h1 = qcsfe_rf$h1,
-                      rf_h12 = qcsfe_rf$h4) 
+                      rf_h4 = qcsfe_rf$h4) 
 
 forecastq_bench <- as.data.frame(benchmarkq$forecasts)
 forecastq_lasso <- as.data.frame(lasso_modelq$forecasts)
