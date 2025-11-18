@@ -148,7 +148,8 @@ forecastq_enet <- as.data.frame(enet_modelq$forecasts)
 forecastq_rf <- as.data.frame(rf_modelq$forecasts)
 
 results_q <- data.frame(date = y_ax,
-                        GDP_RS = yq,
+                        gdprs_h1 = yq,
+                        gdprs_h4 = yq,
                         benchmark_h1 = forecastq_bench$init,
                         benchmark_h4 = forecastq_bench$V2,
                         lasso_h1 = forecastq_lasso$init,

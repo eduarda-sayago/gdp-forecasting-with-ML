@@ -255,3 +255,305 @@ ggsave("Plots/Csfe - Qh1.png", csfe_qh1, width = 8, height = 6, dpi = 225)
 ggsave("Plots/Csfe - Qh4.png", csfe_qh4, width = 8, height = 6, dpi = 225)
 
 rm(CSFE_q, csfe_qh1, csfe_qh4)
+
+# ================================================
+# ---------------MODEL PREDICTIONS----------------
+# ================================================
+
+fcst_m <- results_m %>%
+  pivot_longer(
+    cols = -date,
+    names_to = c("model", "horizon"),
+    names_sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = horizon,
+    values_from = value,
+    names_prefix = "fcst_"
+  )
+
+fcst_q <- results_q %>%
+  pivot_longer(
+    cols = -date,
+    names_to = c("model", "horizon"),
+    names_sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = horizon,
+    values_from = value,
+    names_prefix = "fcst_"
+  )
+
+# ================================================
+# --------------Forecasts - Monthly---------------
+# ================================================
+# -monthly--------------------h1
+
+fcst_mh1 <- fcst_m %>%
+  ggplot(aes(x = date, y = fcst_h1, color = model)) +
+  geom_line(linewidth = 0.5) +
+  labs(title = "Horizon 1",
+       subtitle = "Data from Sep/2018 to May/2025",
+       x = "Date",
+       y = "IBCR-RS",
+       color = "Model:") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_color_manual(
+    values = c(
+      "ibcrs" = "black",
+      "benchmark" = "#1f78b4",
+      "lasso" = "#33a02c",
+      "enet" = "#e31a1c",
+      "rf" = "#ff7f00"
+    ),
+    labels = c(
+      "ibcrs" = "Original",
+      "benchmark" = "SARIMA",
+      "lasso" = "LASSO",
+      "enet" = "Elastic Net",
+      "rf" = "Random Forest"
+    )
+  ) +
+  # set sizes (original thicker), then hide the size legend (we only want the color legend)
+  scale_size_manual(values = c(
+    "ibcrs" = 1.2,
+    "benchmark" = 0.8,
+    "lasso" = 0.8,
+    "enet" = 0.8,
+    "rf" = 0.8
+  )) +
+  scale_alpha_manual(values = c(
+    "ibcrs" = 1.0,   # fully opaque
+    "benchmark" = 0.4,
+    "lasso" = 0.4,
+    "enet" = 0.4,
+    "rf" = 0.4
+  )) +
+  guides(alpha = "none") +
+  guides(size = "none") +
+  theme_bw(base_size = 16, base_family = "EB Garamond") +
+  theme(
+    axis.title.y = element_text(size = 20),
+    axis.text.y  = element_text(size = 18),
+    axis.text.x  = element_text(size = 18, angle = -90, vjust = 0.5, hjust = 1),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 24),
+    plot.subtitle = element_text(size = 22),
+    legend.title = element_text(size = 20),
+    legend.text  = element_text(size = 18),
+    legend.position = "right",        # moved to the right
+    legend.direction = "vertical",    # vertical layout for right-side legend
+    legend.justification = "center",
+    legend.key.width = unit(0.5, "cm"),
+    legend.key.height = unit(0.3, "cm"),
+    legend.box.spacing = unit(0.5, "cm"),
+    legend.margin = margin(0.2, 0.2, 0.2, 0.2)
+  )
+
+# -monthly--------------------h12
+
+fcst_mh12 <- fcst_m %>%
+  ggplot(aes(x = date, y = fcst_h12, color = model)) +
+  geom_line(linewidth = 0.5) +
+  labs(title = "Horizon 12",
+       subtitle = "Data from Sep/2018 to May/2025",
+       x = "Date",
+       y = "IBCR-RS",
+       color = "Model:") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_color_manual(
+    values = c(
+      "ibcrs" = "black",
+      "benchmark" = "#1f78b4",
+      "lasso" = "#33a02c",
+      "enet" = "#e31a1c",
+      "rf" = "#ff7f00"
+    ),
+    labels = c(
+      "ibcrs" = "Original",
+      "benchmark" = "SARIMA",
+      "lasso" = "LASSO",
+      "enet" = "Elastic Net",
+      "rf" = "Random Forest"
+    )
+  ) +
+  # set sizes (original thicker), then hide the size legend (we only want the color legend)
+  scale_size_manual(values = c(
+    "ibcrs" = 1.2,
+    "benchmark" = 0.8,
+    "lasso" = 0.8,
+    "enet" = 0.8,
+    "rf" = 0.8
+  )) +
+  scale_alpha_manual(values = c(
+    "ibcrs" = 1.0,   # fully opaque
+    "benchmark" = 0.4,
+    "lasso" = 0.4,
+    "enet" = 0.4,
+    "rf" = 0.4
+  )) +
+  guides(alpha = "none") +
+  guides(size = "none") +
+  theme_bw(base_size = 16, base_family = "EB Garamond") +
+  theme(
+    axis.title.y = element_text(size = 20),
+    axis.text.y  = element_text(size = 18),
+    axis.text.x  = element_text(size = 18, angle = -90, vjust = 0.5, hjust = 1),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 24),
+    plot.subtitle = element_text(size = 22),
+    legend.title = element_text(size = 20),
+    legend.text  = element_text(size = 18),
+    legend.position = "right",        # moved to the right
+    legend.direction = "vertical",    # vertical layout for right-side legend
+    legend.justification = "center",
+    legend.key.width = unit(0.5, "cm"),
+    legend.key.height = unit(0.3, "cm"),
+    legend.box.spacing = unit(0.5, "cm"),
+    legend.margin = margin(0.2, 0.2, 0.2, 0.2)
+  )
+
+
+
+# -monthly--------------------save
+
+ggsave("Plots/Fcst - Mh1.png", fcst_mh1, width = 6, height = 3, dpi = 200)
+ggsave("Plots/Fcst - Mh12.png", fcst_mh12, width = 6, height = 3, dpi = 200)
+
+
+# ================================================
+# -------------Forecasts - Quarterly--------------
+# ================================================
+
+# -quarterly--------------------h1
+
+fcst_qh1 <- fcst_q %>%
+  ggplot(aes(x = date, y = fcst_h1, color = model)) +
+  geom_line(linewidth = 0.5) +
+  labs(title = "Horizon 1",
+       subtitle = "Data from 2Q2018 to 1Q2025",
+       x = "Date",
+       y = "IBCR-RS",
+       color = "Model:") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_color_manual(
+    values = c(
+      "ibcrs" = "black",
+      "benchmark" = "#1f78b4",
+      "lasso" = "#33a02c",
+      "enet" = "#e31a1c",
+      "rf" = "#ff7f00"
+    ),
+    labels = c(
+      "ibcrs" = "Original",
+      "benchmark" = "SARIMA",
+      "lasso" = "LASSO",
+      "enet" = "Elastic Net",
+      "rf" = "Random Forest"
+    )
+  ) +
+  # set sizes (original thicker), then hide the size legend (we only want the color legend)
+  scale_size_manual(values = c(
+    "ibcrs" = 1.2,
+    "benchmark" = 0.8,
+    "lasso" = 0.8,
+    "enet" = 0.8,
+    "rf" = 0.8
+  )) +
+  scale_alpha_manual(values = c(
+    "ibcrs" = 1.0,   # fully opaque
+    "benchmark" = 0.4,
+    "lasso" = 0.4,
+    "enet" = 0.4,
+    "rf" = 0.4
+  )) +
+  guides(alpha = "none") +
+  guides(size = "none") +
+  theme_bw(base_size = 16, base_family = "EB Garamond") +
+  theme(
+    axis.title.y = element_text(size = 20),
+    axis.text.y  = element_text(size = 18),
+    axis.text.x  = element_text(size = 18, angle = -90, vjust = 0.5, hjust = 1),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 24),
+    plot.subtitle = element_text(size = 22),
+    legend.title = element_text(size = 20),
+    legend.text  = element_text(size = 18),
+    legend.position = "right",        # moved to the right
+    legend.direction = "vertical",    # vertical layout for right-side legend
+    legend.justification = "center",
+    legend.key.width = unit(0.5, "cm"),
+    legend.key.height = unit(0.3, "cm"),
+    legend.box.spacing = unit(0.5, "cm"),
+    legend.margin = margin(0.2, 0.2, 0.2, 0.2)
+  )
+
+# -quarterly--------------------h4
+
+fcst_qh4 <- fcst_q %>%
+  ggplot(aes(x = date, y = fcst_h4, color = model)) +
+  geom_line(linewidth = 0.5) +
+  labs(title = "Horizon 4",
+       subtitle = "Data from 2Q2018 to 1Q2025",
+       x = "Date",
+       y = "IBCR-RS",
+       color = "Model:") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_color_manual(
+    values = c(
+      "ibcrs" = "black",
+      "benchmark" = "#1f78b4",
+      "lasso" = "#33a02c",
+      "enet" = "#e31a1c",
+      "rf" = "#ff7f00"
+    ),
+    labels = c(
+      "ibcrs" = "Original",
+      "benchmark" = "SARIMA",
+      "lasso" = "LASSO",
+      "enet" = "Elastic Net",
+      "rf" = "Random Forest"
+    )
+  ) +
+  # set sizes (original thicker), then hide the size legend (we only want the color legend)
+  scale_size_manual(values = c(
+    "ibcrs" = 1.2,
+    "benchmark" = 0.8,
+    "lasso" = 0.8,
+    "enet" = 0.8,
+    "rf" = 0.8
+  )) +
+  scale_alpha_manual(values = c(
+    "ibcrs" = 1.0,   # fully opaque
+    "benchmark" = 0.4,
+    "lasso" = 0.4,
+    "enet" = 0.4,
+    "rf" = 0.4
+  )) +
+  guides(alpha = "none") +
+  guides(size = "none") +
+  theme_bw(base_size = 16, base_family = "EB Garamond") +
+  theme(
+    axis.title.y = element_text(size = 20),
+    axis.text.y  = element_text(size = 18),
+    axis.text.x  = element_text(size = 18, angle = -90, vjust = 0.5, hjust = 1),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 24),
+    plot.subtitle = element_text(size = 22),
+    legend.title = element_text(size = 20),
+    legend.text  = element_text(size = 18),
+    legend.position = "right",        # moved to the right
+    legend.direction = "vertical",    # vertical layout for right-side legend
+    legend.justification = "center",
+    legend.key.width = unit(0.5, "cm"),
+    legend.key.height = unit(0.3, "cm"),
+    legend.box.spacing = unit(0.5, "cm"),
+    legend.margin = margin(0.2, 0.2, 0.2, 0.2)
+  )
+
+
+
+# -monthly--------------------save
+
+ggsave("Plots/Fcst - Qh1.png", fcst_qh1, width = 6, height = 3, dpi = 200)
+ggsave("Plots/Fcst - Qh4.png", fcst_qh4, width = 6, height = 3, dpi = 200)

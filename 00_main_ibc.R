@@ -150,7 +150,8 @@ forecast_enet <- as.data.frame(enet_model$forecasts)
 forecast_rf <- as.data.frame(rf_model$forecasts)
 
 results_m <- data.frame(date = y_axis,
-                        IBCR_RS = ym,
+                        ibcrs_h1 = ym,
+                        ibcrs_h12 = ym,
                         benchmark_h1 = forecast_bench$init,
                         benchmark_h12 = forecast_bench$V2,
                         lasso_h1 = forecast_lasso$init,
