@@ -301,10 +301,10 @@ fcst_mh1 <- fcst_m %>%
   scale_color_manual(
     values = c(
       "ibcrs" = "black",
-      "benchmark" = "#1f78b4",
-      "lasso" = "#33a02c",
-      "enet" = "#e31a1c",
-      "rf" = "#ff7f00"
+      "benchmark" = "#0063D3",
+      "lasso" = "#993290",
+      "enet" = "#ff7f00",
+      "rf" = "#49BFA3"
     ),
     labels = c(
       "ibcrs" = "Original",
@@ -364,10 +364,10 @@ fcst_mh12 <- fcst_m %>%
   scale_color_manual(
     values = c(
       "ibcrs" = "black",
-      "benchmark" = "#1f78b4",
-      "lasso" = "#33a02c",
-      "enet" = "#e31a1c",
-      "rf" = "#ff7f00"
+      "benchmark" = "#0063D3",
+      "lasso" = "#993290",
+      "enet" = "#ff7f00",
+      "rf" = "#49BFA3"
     ),
     labels = c(
       "ibcrs" = "Original",
@@ -433,19 +433,19 @@ fcst_qh1 <- fcst_q %>%
   labs(title = "Horizon 1",
        subtitle = "Data from 2Q2018 to 1Q2025",
        x = "Date",
-       y = "IBCR-RS",
+       y = "GDP - RS",
        color = "Model:") +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   scale_color_manual(
     values = c(
-      "ibcrs" = "black",
-      "benchmark" = "#1f78b4",
-      "lasso" = "#33a02c",
-      "enet" = "#e31a1c",
-      "rf" = "#ff7f00"
+      "gdprs" = "black",
+      "benchmark" = "#0063D3",
+      "lasso" = "#993290",
+      "enet" = "#ff7f00",
+      "rf" = "#49BFA3"
     ),
     labels = c(
-      "ibcrs" = "Original",
+      "gdprs" = "Original",
       "benchmark" = "SARIMA",
       "lasso" = "LASSO",
       "enet" = "Elastic Net",
@@ -454,14 +454,14 @@ fcst_qh1 <- fcst_q %>%
   ) +
   # set sizes (original thicker), then hide the size legend (we only want the color legend)
   scale_size_manual(values = c(
-    "ibcrs" = 1.2,
+    "gdprs" = 1.2,
     "benchmark" = 0.8,
     "lasso" = 0.8,
     "enet" = 0.8,
     "rf" = 0.8
   )) +
   scale_alpha_manual(values = c(
-    "ibcrs" = 1.0,   # fully opaque
+    "gdprs" = 1.0,   # fully opaque
     "benchmark" = 0.4,
     "lasso" = 0.4,
     "enet" = 0.4,
@@ -496,19 +496,19 @@ fcst_qh4 <- fcst_q %>%
   labs(title = "Horizon 4",
        subtitle = "Data from 2Q2018 to 1Q2025",
        x = "Date",
-       y = "IBCR-RS",
+       y = "GDP - RS",
        color = "Model:") +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   scale_color_manual(
     values = c(
-      "ibcrs" = "black",
-      "benchmark" = "#1f78b4",
-      "lasso" = "#33a02c",
-      "enet" = "#e31a1c",
-      "rf" = "#ff7f00"
+      "gdprs" = "black",
+      "benchmark" = "#0063D3",
+      "lasso" = "#993290",
+      "enet" = "#ff7f00",
+      "rf" = "#49BFA3"
     ),
     labels = c(
-      "ibcrs" = "Original",
+      "gdprs" = "Original",
       "benchmark" = "SARIMA",
       "lasso" = "LASSO",
       "enet" = "Elastic Net",
@@ -517,18 +517,18 @@ fcst_qh4 <- fcst_q %>%
   ) +
   # set sizes (original thicker), then hide the size legend (we only want the color legend)
   scale_size_manual(values = c(
-    "ibcrs" = 1.2,
-    "benchmark" = 0.8,
-    "lasso" = 0.8,
-    "enet" = 0.8,
-    "rf" = 0.8
+    "gdprs" = 1.2,
+    "benchmark" = 0.7,
+    "lasso" = 0.7,
+    "enet" = 0.7,
+    "rf" = 0.7
   )) +
   scale_alpha_manual(values = c(
-    "ibcrs" = 1.0,   # fully opaque
-    "benchmark" = 0.4,
-    "lasso" = 0.4,
-    "enet" = 0.4,
-    "rf" = 0.4
+    "gdprs" = 1.0,   # fully opaque
+    "benchmark" = 0.3,
+    "lasso" = 0.3,
+    "enet" = 0.3,
+    "rf" = 0.3
   )) +
   guides(alpha = "none") +
   guides(size = "none") +
@@ -553,7 +553,7 @@ fcst_qh4 <- fcst_q %>%
 
 
 
-# -monthly--------------------save
+# -quarterly--------------------save
 
 ggsave("Plots/Fcst - Qh1.png", fcst_qh1, width = 6, height = 3, dpi = 200)
 ggsave("Plots/Fcst - Qh4.png", fcst_qh4, width = 6, height = 3, dpi = 200)
