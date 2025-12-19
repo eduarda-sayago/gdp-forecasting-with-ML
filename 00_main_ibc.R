@@ -161,7 +161,7 @@ results_m <- data.frame(date = y_axis,
                         rf_h1 = forecast_rf$init,
                         rf_h12 = forecast_rf$V2)
 
-# c("#F57C00", "#1ABC9C", "#1F497D")
+rm(forecast_bench, forecast_enet, forecast_lasso, forecast_rf)
 
 message("Process finished. Thank you!")
 # ================================================

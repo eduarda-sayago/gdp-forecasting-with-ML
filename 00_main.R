@@ -159,7 +159,7 @@ results_q <- data.frame(date = y_ax,
                         rf_h1 = forecastq_rf$init,
                         rf_h4 = forecastq_rf$V2)
 
-# c("#F57C00", "#1ABC9C", "#1F497D")
+rm(forecastq_bench, forecastq_enet, forecastq_lasso, forecastq_rf)
 
 message("Process finished. Thank you!")
 # ================================================
