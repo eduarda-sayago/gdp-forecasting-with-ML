@@ -82,9 +82,9 @@ dataset$Q4 <- ifelse(dummies$quarter == 4, 1, 0)
 
 dataset$d_pandemic <- ifelse(dataset$date >= as.Date("2020-03-01") &
                              dataset$date <= as.Date("2020-06-01"), 1, 0)
-dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
-# dataset$d_shift <- ifelse(dataset$date < as.Date("2013-03-01"), 
-#                           seq_len(sum(dataset$date < as.Date("2013-03-01"))),0)
+# dataset$d_rsflood <- ifelse(dataset$date == as.Date("2024-06-01"), 1, 0)
+dataset$d_shift <- ifelse(dataset$date < as.Date("2013-03-01"), 
+                          seq_len(sum(dataset$date < as.Date("2013-03-01"))),0)
 # ================================================
 # ------------------Checkpoint--------------------
 # ================================================
@@ -134,9 +134,8 @@ lasso_model <- call_models1(dataset, 'LASSO', get_lasso, "pib_rs")
 # h=1 RMSE: 0.05619033 ; MAE: 0.03669128; MAPE: 97.0483 
 # h=4 RMSE: 0.06089886 ; MAE: 0.04466303; MAPE: 101.9442 
 
-lasso_modeld <- call_models1(dataset, 'LASSOd', get_lasso, "pib_rs")
-# h=1 RMSE: 0.05630044; MAE: 0.03681486; MAPE: 97.17642 
-# h=4 RMSE: 0.06074664; MAE: 0.04515107; MAPE: 102.24471  
+# h=1 RMSE: 0.05630044    ; MAE: 0.03681486    
+# h=4 RMSE: 0.06074664    ; MAE: 0.04515107 
 
 #=====
 message("Elastic Net")
