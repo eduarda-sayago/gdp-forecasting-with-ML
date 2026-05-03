@@ -1,18 +1,18 @@
 rolling_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
   
-  #' Janela Movel para Modelagem
+  #' Rolling Window for Modeling
   #'
-  #' Esta função aplica uma função especificada a uma janela deslizante de dados em um `data.frame` para realizar previsões.
+  #' This function applies a specified function to a sliding window of data in a `data.frame` to generate forecasts.
   #'
-  #' @param fn A função a ser aplicada em cada janela deslizante. Esta função deve retornar um objeto com as previsões e saídas.
-  #' @param df Um `data.frame` contendo os dados a serem processados.
-  #' @param nwindow O tamanho da janela deslizante. O padrão é 1.
-  #' @param horizon O horizonte de previsão, que determina quantas observações devem ser projetadas para frente.
-  #' @param variable O nome da variável dependente a ser utilizada na análise.
-  #' @param ... Argumentos adicionais a serem passados para a função `fn`.
-  #' @return Uma lista com dois elementos:
-  #' - forecast: Um vetor com as previsões resultantes de cada aplicação da função nas janelas deslizantes.
-  #' - outputs: Uma lista contendo as saídas resultantes de cada aplicação da função nas janelas deslizantes.
+  #' @param fn The function to apply to each sliding window. It must return an object with forecasts and outputs.
+  #' @param df A `data.frame` containing the data to be processed.
+  #' @param nwindow The size of the sliding window. Default is 1.
+  #' @param horizon The forecast horizon, determining how many observations to project ahead.
+  #' @param variable The name of the dependent variable to use in the analysis.
+  #' @param ... Additional arguments to be passed to function `fn`.
+  #' @return A list with two elements:
+  #' - forecast: A vector with the forecasts from each application of the function over the sliding windows.
+  #' - outputs: A list containing the outputs from each application of the function over the sliding windows.
   #'
   #' @examples
   #' df <- data.frame(data = 1:100, variable = rnorm(100))
@@ -21,7 +21,7 @@ rolling_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
   #' @export
   
   #ind <- seq_len(nrow(df))
-  window_size <- nrow(df) - nwindow # linhas do df - tamanho da janela (92 - 31= 61); h4 = (28+4-1)
+  window_size <- nrow(df) - nwindow # rows of df - window size (92 - 31= 61); h4 = (28+4-1)
   indmat <- matrix(NA, window_size, nwindow)
   indmat[1, ] <- seq_len(ncol(indmat))
   for (i in 2:nrow(indmat)) {
@@ -45,19 +45,19 @@ rolling_window <- function(fn, df, nwindow = 1, horizon, variable, ...) {
 
 rolling_window2 <- function(fn, df, nwindow = 1, horizon, variable, ...) {
   
-  #' Janela Movel para Modelagem
+  #' Rolling Window for Modeling
   #'
-  #' Esta função aplica uma função especificada a uma janela deslizante de dados em um `data.frame` para realizar previsões.
+  #' This function applies a specified function to a sliding window of data in a `data.frame` to generate forecasts.
   #'
-  #' @param fn A função a ser aplicada em cada janela deslizante. Esta função deve retornar um objeto com as previsões e saídas.
-  #' @param df Um `data.frame` contendo os dados a serem processados.
-  #' @param nwindow O tamanho da janela deslizante. O padrão é 1.
-  #' @param horizon O horizonte de previsão, que determina quantas observações devem ser projetadas para frente.
-  #' @param variable O nome da variável dependente a ser utilizada na análise.
-  #' @param ... Argumentos adicionais a serem passados para a função `fn`.
-  #' @return Uma lista com dois elementos:
-  #' - forecast: Um vetor com as previsões resultantes de cada aplicação da função nas janelas deslizantes.
-  #' - outputs: Uma lista contendo as saídas resultantes de cada aplicação da função nas janelas deslizantes.
+  #' @param fn The function to apply to each sliding window. It must return an object with forecasts and outputs.
+  #' @param df A `data.frame` containing the data to be processed.
+  #' @param nwindow The size of the sliding window. Default is 1.
+  #' @param horizon The forecast horizon, determining how many observations to project ahead.
+  #' @param variable The name of the dependent variable to use in the analysis.
+  #' @param ... Additional arguments to be passed to function `fn`.
+  #' @return A list with two elements:
+  #' - forecast: A vector with the forecasts from each application of the function over the sliding windows.
+  #' - outputs: A list containing the outputs from each application of the function over the sliding windows.
   #'
   #' @examples
   #' df <- data.frame(data = 1:100, variable = rnorm(100))

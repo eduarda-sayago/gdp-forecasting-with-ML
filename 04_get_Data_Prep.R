@@ -1,19 +1,19 @@
 dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4, dum_cols = NULL) {
   
-  #' Preparação de Dados para Modelagem
+  #' Data Preparation for Modeling
   #'
-  #' Esta função prepara os dados para análise, criando variáveis de defasagem e separando as variáveis dependentes e independentes.
+  #' This function prepares data for analysis by creating lag variables and separating dependent and independent variables.
   #'
-  #' @param type Um caractere que define o tipo de preparação de dados. Pode ser 'tb' para uma estrutura de tabela ou outro valor conforme necessário.
-  #' @param ind Um vetor de índices para selecionar as linhas do `data.frame`.
-  #' @param df Um `data.frame` contendo os dados a serem preparados.
-  #' @param variable O nome da variável dependente a ser utilizada na análise.
-  #' @param horizon O horizonte de previsão, que determina quantas observações devem ser projetadas para frente.
-  #' @param n_lags O número de defasagens a serem criadas. Deve ser um inteiro maior que 1. O padrão é 4.
-  #' @return Uma lista com três elementos:
-  #' - x_in: Um `data.frame` contendo as variáveis independentes de entrada, excluindo os últimos `horizon` registros.
-  #' - x_out: Um vetor contendo a última observação das variáveis independentes (a previsão).
-  #' - y_in: Um vetor com os valores correspondentes da variável dependente para as observações de entrada.
+  #' @param type A character string defining the type of data preparation. Use 'tb' for a table structure or another value as needed.
+  #' @param ind A vector of indices to select rows from the `data.frame`.
+  #' @param df A `data.frame` containing the data to be prepared.
+  #' @param variable The name of the dependent variable to use in the analysis.
+  #' @param horizon The forecast horizon, determining how many observations to project ahead.
+  #' @param n_lags The number of lags to create. Must be an integer greater than 1. Default is 4.
+  #' @return A list with three elements:
+  #' - x_in: A `data.frame` containing the input independent variables, excluding the last `horizon` records.
+  #' - x_out: A vector containing the last observation of the independent variables (the forecast input).
+  #' - y_in: A vector with the corresponding dependent variable values for the input observations.
   #'
   #' @examples
   #' df <- data.frame(data = 1:100, variable = rnorm(100))
@@ -35,7 +35,7 @@ dataprep <- function(type = '...', ind, df, variable, horizon, n_lags = 4, dum_c
   # validate dummy columns
   if (!is.null(dum_cols)) {
     if (!all(dum_cols %in% colnames(x_aux))) {
-      stop("Algumas dum_cols não existem em x_aux.")
+      stop("Some dum_cols do not exist in x_aux.")
     }
   }
   

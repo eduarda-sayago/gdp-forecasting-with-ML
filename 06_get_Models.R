@@ -5,16 +5,16 @@
 
 f_rmse = function(x, y){
   
-  #' Cálculo do Erro Quadrático Médio (RMSE)
+  #' Root Mean Squared Error (RMSE)
   #'
-  #' Esta função calcula a raiz do erro quadrático médio entre duas séries de valores.
+  #' This function computes the root mean squared error between two series of values.
   #'
-  #' @param x Um vetor de valores previstos.
-  #' @param y Um vetor de valores reais.
-  #' @return O valor do erro quadrático médio entre as duas séries de valores.
+  #' @param x A vector of predicted values.
+  #' @param y A vector of actual values.
+  #' @return The root mean squared error between the two series.
   #'
   #' @examples
-  #' f_rmse(c(2, 3, 5), c(1, 2, 6)) # Retorna a RMSE entre os vetores
+  #' f_rmse(c(2, 3, 5), c(1, 2, 6)) # Returns the RMSE between the vectors
   
   sqrt(mean((y - x)^2))
 }
@@ -25,16 +25,16 @@ f_rmse = function(x, y){
 
 f_mae = function(x, y){
   
-  #' Cálculo do Erro Médio Absoluto (MAE)
+  #' Mean Absolute Error (MAE)
   #'
-  #' Esta função calcula o erro médio absoluto entre duas séries de valores.
+  #' This function computes the mean absolute error between two series of values.
   #'
-  #' @param x Um vetor de valores previstos.
-  #' @param y Um vetor de valores reais.
-  #' @return O valor do erro médio absoluto entre as duas séries de valores.
+  #' @param x A vector of predicted values.
+  #' @param y A vector of actual values.
+  #' @return The mean absolute error between the two series.
   #'
   #' @examples
-  #' f_mae(c(2, 3, 5), c(1, 2, 6)) # Retorna o MAE entre os vetores
+  #' f_mae(c(2, 3, 5), c(1, 2, 6)) # Returns the MAE between the vectors
   #'
   
   mean(abs(y - x))
@@ -46,16 +46,16 @@ f_mae = function(x, y){
 
 f_mape = function(x, y){
   
-  #' Cálculo do Erro Percentual Médio Absoluto (MAPE)
+  #' Mean Absolute Percentage Error (MAPE)
   #'
-  #' Esta função calcula o erro percentual médio absoluto entre duas séries de valores.
+  #' This function computes the mean absolute percentage error between two series of values.
   #'
-  #' @param x Um vetor de valores previstos.
-  #' @param y Um vetor de valores reais.
-  #' @return O valor do erro percentual médio absoluto (em %).
+  #' @param x A vector of predicted values.
+  #' @param y A vector of actual values.
+  #' @return The mean absolute percentage error (in %).
   #'
   #' @examples
-  #' f_mape(c(2, 3, 5), c(1, 2, 6)) # Retorna o MAPE entre os vetores
+  #' f_mape(c(2, 3, 5), c(1, 2, 6)) # Returns the MAPE between the vectors
   #'
   
   mean(abs((y - x) / y)) * 100
@@ -91,16 +91,16 @@ get_mean = function(ind, df, variable, horizon, n_lags){
 
 get_sarima = function(ind, df, variable, horizon, n_lags){
   
-  #' Ajuste de Modelo SARIMA
+  #' SARIMA Model Fitting
   #'
-  #' Esta função ajusta um modelo SARIMA aos dados fornecidos e gera previsões.
+  #' This function fits a SARIMA model to the provided data and generates forecasts.
   #'
-  #' @param ind Índices das observações a serem utilizadas.
-  #' @param df Um data.frame contendo os dados.
-  #' @param variable Nome da variável dependente a ser modelada.
-  #' @param horizon Horizonte de previsão.
-  #' @param n_lags Número de defasagens a serem usadas na modelagem.
-  #' @return Uma lista contendo as previsões do modelo SARIMA.
+  #' @param ind Indices of observations to use.
+  #' @param df A data.frame containing the data.
+  #' @param variable Name of the dependent variable to model.
+  #' @param horizon Forecast horizon.
+  #' @param n_lags Number of lags to use in modeling.
+  #' @return A list containing the SARIMA model forecasts.
   #'
   #' @examples
   #' results <- get_sarima(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
@@ -116,7 +116,7 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
     horizon = horizon,
     n_lags = n_lags)
   
-  #INICIANDO AS VARIAVEIS
+  #Initializing variables
   y_in = data_in$y_in
   as.ts(y_in, frequency = 12)
   
@@ -150,16 +150,16 @@ get_sarima = function(ind, df, variable, horizon, n_lags){
 
 get_lasso = function(ind, df, variable, horizon, n_lags){
   
-  #' Ajuste de Modelo Lasso
+  #' Lasso Model Fitting
   #'
-  #' Esta função ajusta um modelo de regressão Lasso aos dados fornecidos e gera previsões.
+  #' This function fits a Lasso regression model to the provided data and generates forecasts.
   #'
-  #' @param ind Índices das observações a serem utilizadas.
-  #' @param df Um data.frame contendo os dados.
-  #' @param variable Nome da variável dependente a ser modelada.
-  #' @param horizon Horizonte de previsão.
-  #' @param n_lags Número de defasagens a serem usadas na modelagem.
-  #' @return Uma lista contendo as previsões do modelo Lasso.
+  #' @param ind Indices of observations to use.
+  #' @param df A data.frame containing the data.
+  #' @param variable Name of the dependent variable to model.
+  #' @param horizon Forecast horizon.
+  #' @param n_lags Number of lags to use in modeling.
+  #' @return A list containing the Lasso model forecasts.
   #'
   #' @examples
   #' results <- get_lasso(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
@@ -169,7 +169,7 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
   library(glmnet)
   library(forecast)
   
-  #PREPARANDO OS DADOS
+  #Preparing data
   data_in = dataprep(
     type = 'default',
     ind = ind,
@@ -177,13 +177,13 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
     variable = variable,
     horizon = horizon,
     n_lags = 4)
-  
-  #INICIANDO AS VARIAVEIS
+
+  #Initializing variables
   y_in = data_in$y_in
   x_in = data_in$x_in
   x_out = data_in$x_out
-  
-  #ESTIMANDO O MODELO
+
+  #Estimating the model
   cv_lasso = cv.glmnet(
     x = as.matrix(x_in),
     y = y_in,
@@ -247,7 +247,7 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
   # (optional) still print a short summary to console:
   message("Saved ", nrow(df_coefs), " nonzero coef(s) for window ", window_id)
   
-  #PREVISAO
+  #Forecast
   opt_lasso = predict(
     cv_lasso,
     s = cv_lasso$lambda.min,
@@ -266,16 +266,16 @@ get_lasso = function(ind, df, variable, horizon, n_lags){
 get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
   
   
-  #' Ajuste de Modelo Elastic Net
+  #' Elastic Net Model Fitting
   #'
-  #' Esta função ajusta um modelo Elastic Net aos dados fornecidos e gera previsões.
+  #' This function fits an Elastic Net model to the provided data and generates forecasts.
   #'
-  #' @param ind Índices das observações a serem utilizadas.
-  #' @param df Um data.frame contendo os dados.
-  #' @param variable Nome da variável dependente a ser modelada.
-  #' @param horizon Horizonte de previsão.
-  #' @param n_lags Número de defasagens a serem usadas na modelagem.
-  #' @return Uma lista contendo as previsões do modelo Elastic Net.
+  #' @param ind Indices of observations to use.
+  #' @param df A data.frame containing the data.
+  #' @param variable Name of the dependent variable to model.
+  #' @param horizon Forecast horizon.
+  #' @param n_lags Number of lags to use in modeling.
+  #' @return A list containing the Elastic Net model forecasts.
   #'
   #' @examples
   #' re
@@ -284,7 +284,7 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
   library(glmnet)
   library(caret)
   
-  # PREPARANDO OS DADOS
+  # Preparing data
   data_in <- dataprep(
     type = 'default',
     #type = 'tb',
@@ -295,7 +295,7 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
     n_lags = n_lags
   )
   
-  # INICIANDO AS VARIAVEIS
+  # Initializing variables
   y_in <- data_in$y_in
   x_in <- data_in$x_in
   x_out <- data_in$x_out
@@ -408,16 +408,16 @@ get_elasticnet <- function(ind, df, variable, horizon, n_lags) {
 
 get_rf <- function(ind, df, variable, horizon, n_lags) {
   
-  #' Ajuste de Modelo de Random Forest
+  #' Random Forest Model Fitting
   #'
-  #' Esta função ajusta um modelo de Random Forest aos dados fornecidos e gera previsões.
+  #' This function fits a Random Forest model to the provided data and generates forecasts.
   #'
-  #' @param ind Índices das observações a serem utilizadas.
-  #' @param df Um data.frame contendo os dados.
-  #' @param variable Nome da variável dependente a ser modelada.
-  #' @param horizon Horizonte de previsão.
-  #' @param n_lags Número de defasagens a serem usadas na modelagem.
-  #' @return Uma lista contendo as previsões do modelo de Random Forest e informações sobre o modelo ajustado.
+  #' @param ind Indices of observations to use.
+  #' @param df A data.frame containing the data.
+  #' @param variable Name of the dependent variable to model.
+  #' @param horizon Forecast horizon.
+  #' @param n_lags Number of lags to use in modeling.
+  #' @return A list containing the Random Forest forecasts and information about the fitted model.
   #'
   #' @examples
   #' results <- get_rf(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
@@ -426,7 +426,7 @@ get_rf <- function(ind, df, variable, horizon, n_lags) {
   library(caret)
   library(randomForest)
   
-  # Preparação dos dados (mesmo estilo do boosting)
+  # Data preparation (same style as boosting)
   data_in <- dataprep(
     type = 'default',
     ind = ind,
@@ -470,10 +470,10 @@ get_rf <- function(ind, df, variable, horizon, n_lags) {
   
     print(rf_cv$bestTune)
   
-  # Previsão
+  # Forecast
   rf_forecast <- predict(rf_cv, newdata = x_out)
   
-  # Saída
+  # Output
   results <- list(
     forecast = as.numeric(rf_forecast),
     outputs = list(
@@ -491,16 +491,16 @@ get_rf <- function(ind, df, variable, horizon, n_lags) {
 
 get_boosting <- function(ind, df, variable, horizon, n_lags) {
   
-  #' Ajuste de Modelo de Boosting
+  #' Boosting Model Fitting
   #'
-  #' Esta função ajusta um modelo de boosting aos dados fornecidos e gera previsões.
+  #' This function fits a boosting model to the provided data and generates forecasts.
   #'
-  #' @param ind Índices das observações a serem utilizadas.
-  #' @param df Um data.frame contendo os dados.
-  #' @param variable Nome da variável dependente a ser modelada.
-  #' @param horizon Horizonte de previsão.
-  #' @param n_lags Número de defasagens a serem usadas na modelagem.
-  #' @return Uma lista contendo as previsões do modelo de boosting e informações sobre o modelo ajustado.
+  #' @param ind Indices of observations to use.
+  #' @param df A data.frame containing the data.
+  #' @param variable Name of the dependent variable to model.
+  #' @param horizon Forecast horizon.
+  #' @param n_lags Number of lags to use in modeling.
+  #' @return A list containing the boosting model forecasts and information about the fitted model.
   #'
   #' @examples
   #' results <- get_boosting(ind = 1:100, df = my_data, variable = "sales", horizon = 10, n_lags = 4)
@@ -509,7 +509,7 @@ get_boosting <- function(ind, df, variable, horizon, n_lags) {
   library(mboost)
   library(forecast)
   
-  # INICIALIZACAO DE VARIAVEIS
+  # Variable initialization
   set.seed(100)
   
   data_in <- dataprep(
@@ -526,7 +526,7 @@ get_boosting <- function(ind, df, variable, horizon, n_lags) {
   x_in <- data_in$x_in
   x_out <- data_in$x_out
   
-  # AJUSTE DO MODELO DE BOOSTING
+  # FITTING THE BOOSTING MODEL
   reg_full <- glmboost(
     y = y_in,
     x = as.matrix(x_in),
@@ -535,22 +535,22 @@ get_boosting <- function(ind, df, variable, horizon, n_lags) {
     control = boost_control(mstop = 300, nu = 0.1)
   )
   
-  # DETERMINACAO DO NUMERO OTIMO DE ITERACOES
+  # DETERMINING THE OPTIMAL NUMBER OF ITERATIONS
   cv5f <- cv(model.weights(reg_full), type = "kfold", B = 5)
   cv_seq <- cvrisk(reg_full, folds = cv5f, papply = lapply)
   m_opt <- mstop(cv_seq)
   
-  # AJUSTE DO MODELO COM O NUMERO OTIMO DE ITERACOES
+  # FITTING THE MODEL WITH THE OPTIMAL NUMBER OF ITERATIONS
   
   reg_opt <- reg_full[m_opt]
   
-  # PREVISAO PARA A JANELA DE TESTE
+  # FORECAST FOR THE TEST WINDOW
   opt_boosting <- predict(
     object = reg_opt,
     newdata = matrix(x_out, nrow = 1)
   ) %>% as.vector() + mean(y_in)
   
-  # RESULTADOS
+  # RESULTS
   results <- list(
     forecast = opt_boosting,
     outputs = list(

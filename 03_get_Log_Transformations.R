@@ -14,11 +14,11 @@
 # tipo 3 = tem negativos e zeros → soma -min(serie) +0.01 e faz log?
 
 get_logs <- function(df) {
-  # df: data.frame com as séries (cada coluna é uma variável)
+  # df: data.frame with the series (each column is a variable)
   # devolve: lista com $results (data.frame) e $type_df (data.frame: variable, tipo)
   
   n <- ncol(df)
-  results <- df # inicialmente copia (vamos substituir só as colunas transformáveis)
+  results <- df # initially copies df (only transformable columns will be replaced)
   types <- integer(n)
   names(types) <- colnames(df)
   
@@ -26,7 +26,7 @@ get_logs <- function(df) {
     x <- df[[i]]
     colname <- colnames(df)[i]
     
-    # 4 = coluna de data (mantemos sem transformação)
+    # 4 = date column (kept without transformation)
     if (inherits(x, "Date") || inherits(x, "POSIXt")) {
       types[i] <- 4
       results[[i]] <- x
@@ -67,11 +67,11 @@ get_logs <- function(df) {
 }
 
 get_logs1 <- function(df) {
-  # df: data.frame com as séries (cada coluna é uma variável)
+  # df: data.frame with the series (each column is a variable)
   # devolve: lista com $results (data.frame) e $type_df (data.frame: variable, tipo)
   
   n <- ncol(df)
-  results <- df # inicialmente copia (vamos substituir só as colunas transformáveis)
+  results <- df # initially copies df (only transformable columns will be replaced)
   types <- integer(n)
   names(types) <- colnames(df)
   
@@ -79,7 +79,7 @@ get_logs1 <- function(df) {
     x <- df[[i]]
     colname <- colnames(df)[i]
     
-    # 4 = coluna de data (mantemos sem transformação)
+    # 4 = date column (kept without transformation)
     if (inherits(x, "Date") || inherits(x, "POSIXt")) {
       types[i] <- 4
       results[[i]] <- x

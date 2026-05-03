@@ -1,13 +1,13 @@
 add_stars <- function(pvalues, alpha_levels = c(0.05, 0.01, 0.001)) {
   
-  #' Adiciona Estrelas para Indicar Níveis de Significância
+  #' Add Stars to Indicate Significance Levels
   #'
-  #' Esta função atribui estrelas (*) aos valores-p com base em níveis de significância especificados.
+  #' This function assigns stars (*) to p-values based on specified significance levels.
   #'
-  #' @param pvalues Um vetor de valores-p.
-  #' @param alpha_levels Um vetor de níveis de significância (padrão: 0.05, 0.01, 0.001).
+  #' @param pvalues A vector of p-values.
+  #' @param alpha_levels A vector of significance levels (default: 0.05, 0.01, 0.001).
   #'
-  #' @return Um vetor de caracteres com estrelas correspondentes aos valores-p.
+  #' @return A character vector with stars corresponding to each p-value.
   #'
   #' @examples
   #' stars <- add_stars(c(0.02, 0.001, 0.07))
@@ -25,14 +25,14 @@ add_stars <- function(pvalues, alpha_levels = c(0.05, 0.01, 0.001)) {
 #QUARTERLY
 compute_dm = function(model_names, model_dataframes, horizons, orig_data){
   
-  #' Computa o Teste de Diebold-Mariano para Modelos de Previsão
+  #' Compute the Diebold-Mariano Test for Forecasting Models
   #'
-  #' Esta função calcula o teste de Diebold-Mariano para diferentes modelos de previsão e horizontes de previsão.
+  #' This function computes the Diebold-Mariano test for different forecasting models and forecast horizons.
   #'
-  #' @return Uma lista contendo matrizes de valores-p formatadas com estrelas para três conjuntos de modelos:
-  #'   - pvalues_tb: valores-p para modelos baseados em texto.
-  #'   - pvalues_eco: valores-p para modelos econômicos.
-  #'   - pvalues_eco_tb: valores-p para modelos que combinam dados econômicos e baseados em texto.
+  #' @return A list containing p-value matrices formatted with stars for three sets of models:
+  #'   - pvalues_tb: p-values for text-based models.
+  #'   - pvalues_eco: p-values for economic models.
+  #'   - pvalues_eco_tb: p-values for models combining economic and text-based data.
   #'
   #' @examples
   #' dm_results <- compute_dm()
@@ -85,14 +85,14 @@ compute_dm = function(model_names, model_dataframes, horizons, orig_data){
 #MONTHLY
 compute_dm1 = function(model_names, model_dataframes, horizons, orig_data){
   
-  #' Computa o Teste de Diebold-Mariano para Modelos de Previsão
+  #' Compute the Diebold-Mariano Test for Forecasting Models
   #'
-  #' Esta função calcula o teste de Diebold-Mariano para diferentes modelos de previsão e horizontes de previsão.
+  #' This function computes the Diebold-Mariano test for different forecasting models and forecast horizons.
   #'
-  #' @return Uma lista contendo matrizes de valores-p formatadas com estrelas para três conjuntos de modelos:
-  #'   - pvalues_tb: valores-p para modelos baseados em texto.
-  #'   - pvalues_eco: valores-p para modelos econômicos.
-  #'   - pvalues_eco_tb: valores-p para modelos que combinam dados econômicos e baseados em texto.
+  #' @return A list containing p-value matrices formatted with stars for three sets of models:
+  #'   - pvalues_tb: p-values for text-based models.
+  #'   - pvalues_eco: p-values for economic models.
+  #'   - pvalues_eco_tb: p-values for models combining economic and text-based data.
   #'
   #' @examples
   #' dm_results <- compute_dm()
@@ -146,20 +146,20 @@ compute_dm1 = function(model_names, model_dataframes, horizons, orig_data){
 #' #' A more general version that would include benchmark as an input. not tested yet.
 #' compute_dm = function(model_names, model_dfs, benchmark_df, horizons, orig_data){
 #'   
-#'   #' Computa o Teste de Diebold-Mariano para Modelos de Previsão
+#'   #' Compute the Diebold-Mariano Test for Forecasting Models
 #'   #'
-#'   #' Esta função calcula o teste de Diebold-Mariano para diferentes modelos de previsão e horizontes de previsão.
+#'   #' This function computes the Diebold-Mariano test for different forecasting models and forecast horizons.
 #'   #'
 #'   #' @param model_names -- A vector of strings containing the name of each model.
 #'   #' @param model_dfs -- A list with the output lists of the models to be tested. The output_model list must contain forecasts.
 #'   #' @param benchmark_df -- The benchmark output list. Must contain forecasts.
 #'   #' @param horizons -- A vector of integers with the horizons that were estimated in the models.
 #'   #' @param orig_data -- The target variable original dataset, cut to match the forecast length.
-#'   #' 
-#'   #' @return Uma lista contendo matrizes de valores-p formatadas com estrelas para três conjuntos de modelos:
-#'   #'   - pvalues_tb: valores-p para modelos baseados em texto.
-#'   #'   - pvalues_eco: valores-p para modelos econômicos.
-#'   #'   - pvalues_eco_tb: valores-p para modelos que combinam dados econômicos e baseados em texto.
+#'   #'
+#'   #' @return A list containing p-value matrices formatted with stars for three sets of models:
+#'   #'   - pvalues_tb: p-values for text-based models.
+#'   #'   - pvalues_eco: p-values for economic models.
+#'   #'   - pvalues_eco_tb: p-values for models combining economic and text-based data.
 #'   #'
 #'   #' @examples
 #'   #' dm_results <- compute_dm(c("model1", "model2"), list(out_model1, out_model2), out_benchmark, c(1,3), df$target[70:100])
