@@ -67,13 +67,13 @@ All series were transformed for stationarity following Stock and Watson (2012). 
 | Script | Description |
 |--------|-------------|
 | `00_main.R` | Master script, sources all modules and runs the full quarterly pipeline |
-| `00_main.R` | Master script 2, sources all modules and runs the full monthly pipeline |
+| `00_main_ibc.R` | Master script 2, sources all modules and runs the full monthly pipeline |
 | `01_get_Data.R` | Loads or rebuilds the raw monthly dataset from CSV files |
 | `02_get_stationary_SW.R` | Applies Stock and Watson (2012) stationarity transformations; includes ADF-based stationarity check |
 | `03_get_Log_Transformations.R` | Applies log transformations to series based on sign/zero characteristics |
 | `04_get_Data_Prep.R` | Creates lagged predictors and splits data into training inputs/targets |
 | `05_get_Rolling_Window.R` | Implements rolling-window evaluation (`rolling_window`, `rolling_window2`) |
-| `06_get_Models.R` | Defines forecast models: SARIMA, LASSO, Elastic Net, Random Forest, Boosting; and error metrics (RMSE, MAE, MAPE) |
+| `06_get_Models.R` | Defines forecast models: SARIMA, LASSO, Elastic Net, Random Forest; and error metrics (RMSE, MAE, MAPE) |
 | `07_call_Model.R` | Wraps model functions into a unified rolling-window call and saves forecast plots |
 | `08_Compute_DM.R` | Computes the Diebold-Mariano test for pairwise model comparison |
 | `09_Performance_csfe.R` | Cumulative Squared Forecast Error (CSFE) functions for graphical performance evaluation |
