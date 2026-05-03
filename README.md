@@ -66,7 +66,8 @@ All series were transformed for stationarity following Stock and Watson (2012). 
 
 | Script | Description |
 |--------|-------------|
-| `00_main.R` | Master script, sources all modules and runs the full pipeline |
+| `00_main.R` | Master script, sources all modules and runs the full quarterly pipeline |
+| `00_main.R` | Master script 2, sources all modules and runs the full monthly pipeline |
 | `01_get_Data.R` | Loads or rebuilds the raw monthly dataset from CSV files |
 | `02_get_stationary_SW.R` | Applies Stock and Watson (2012) stationarity transformations; includes ADF-based stationarity check |
 | `03_get_Log_Transformations.R` | Applies log transformations to series based on sign/zero characteristics |
@@ -95,7 +96,7 @@ Software: R version 4.2.2
 
 ## Usage
 
-Open `TCC_RSecon.Rproj` in RStudio and run `00_main.R`.
+Open `TCC_RSecon.Rproj` in RStudio and run `00_main.R` and `00_main_ibc.R`.
 
 ---
 
