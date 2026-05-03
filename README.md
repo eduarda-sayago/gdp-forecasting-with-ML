@@ -78,7 +78,6 @@ All series were transformed for stationarity following Stock and Watson (2012). 
 | `08_Compute_DM.R` | Computes the Diebold-Mariano test for pairwise model comparison |
 | `09_Performance_csfe.R` | Cumulative Squared Forecast Error (CSFE) functions for graphical performance evaluation |
 | `10_get_Graphs.R` | Generates result plots |
-| `arima_tests.R` | Standalone ARIMA/SARIMA rolling-window experiments |
 
 ---
 
