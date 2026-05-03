@@ -101,4 +101,4 @@ Open `TCC_RSecon.Rproj` in RStudio and run `00_main.R`.
 
 ## Citation
 
-Sayago, E. T.; Portugal, M. S. Previsão do PIB Estadual com Aprendizado de Máquina: Um Estudo de Caso do Rio Grande do Sul. Undergraduate thesis, Federal University of Rio Grande do Sul, Porto Alegre, 2025.
+Sayago, E. T.; Portugal, M. S. State GDP Forecasting with Machine Learning: A Case Study of Rio Grande do Sul. Undergraduate thesis, Federal University of Rio Grande do Sul, Porto Alegre, 2025. Available at Lume UFRGS: https://lume.ufrgs.br/handle/10183/302668
