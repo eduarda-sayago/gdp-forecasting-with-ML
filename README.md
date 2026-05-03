@@ -102,3 +102,8 @@ Open `TCC_RSecon.Rproj` in RStudio and run `00_main.R`.
 ## Citation
 
 Sayago, E. T.; Portugal, M. S. State GDP Forecasting with Machine Learning: A Case Study of Rio Grande do Sul. Undergraduate thesis, Federal University of Rio Grande do Sul, Porto Alegre, 2025. Available at Lume UFRGS: https://lume.ufrgs.br/handle/10183/302668
+
+## Acknowledgements
+
+Thank you to Prof. Dr. Marcelo Portugal and Prof. Dr. Flávio A. Ziegelmann for all the counseling for this thesis. 
+Thank you to my friend Nathan Ramos, who helped me so much with the code. Check out his repository at https://github.com/E30895/economics-forecast-using-text
