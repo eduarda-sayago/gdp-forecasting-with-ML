@@ -6,7 +6,7 @@ This project forecasts the GDP of Rio Grande do Sul using machine learning model
 
 | Script | Description |
 |--------|-------------|
-| `00_main.R` | Master script — sources all modules and runs the full pipeline |
+| `00_main.R` | Master script. Sources all modules and runs the full pipeline |
 | `01_get_Data.R` | Loads or rebuilds the raw monthly dataset from CSV files |
 | `02_get_stationary_SW.R` | Applies Stock & Watson (2012) stationarity transformations; includes ADF-based stationarity check |
 | `03_get_Log_Transformations.R` | Applies log transformations to series based on sign/zero characteristics |
